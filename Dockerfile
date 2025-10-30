@@ -1,4 +1,4 @@
-FROM PYTHON:3.11.14-alpine3.22
+FROM python:3.11.14-alpine3.21
 LABEL matainer="ygor.limarsx@gmail.com"
 
 # Essa variável de ambiente é usada para controlar se o Python deve 
