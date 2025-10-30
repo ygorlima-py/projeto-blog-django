@@ -1,0 +1,31 @@
+# Python specific ignores
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+
+# Django specific ignores
+db.sqlite3
+media/
+static_collected/ # If you collect static files locally before building the image
+
+# Version control ignores
+.git/
+.gitignore
+
+# Editor/IDE specific ignores
+.vscode/
+.idea/
+*.swp
+*~
+
+# Dependency management ignores
+Pipfile.lock # If using Pipenv and want to regenerate lock file in container
+node_modules/ # If you have frontend assets managed by Node.js
+
+# Environment specific files
+.env
+*.env
