@@ -11,4 +11,7 @@ Este projeto, é um blog desenvolvido por Ygor Lima como parte da conclusão do 
 - Servidor Gunicorn para servir Django
 - Servidor NGINX para servir arquivos Státicos
 
-
+# Comandos Docker:
+- docker-compose run --build
+- docker-compose run
+- docker-compose down -v

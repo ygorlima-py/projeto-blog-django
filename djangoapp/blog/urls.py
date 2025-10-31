@@ -5,4 +5,5 @@ app_name = 'blog'
 
 urlpatterns = [
     path('', index, name='index'),
+    
 ]
