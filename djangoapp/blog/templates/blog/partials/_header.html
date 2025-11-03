@@ -37,7 +37,7 @@
             <nav class="menu">
                 <ul class="menu-items">
                     
-                    {% for link in site_setup.menulink_set.all %}
+                    {% for link in site_setup.menu.all %}
                     <li class="menu-item">
                         {% if link.new_tab %}
                             <a target="_blank" href="{{link.url_or_path}}" class="menu-item">{{link.text}}</a>
