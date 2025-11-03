@@ -1,6 +1,6 @@
 :root {
     /* Colors */
-    --_clr-base-hue: 213;
+    --_clr-base-hue: 250;
     --_clr-primary: var(--_clr-base-hue) 100%;
     --_clr-gray: var(--_clr-base-hue) 10%;
 
