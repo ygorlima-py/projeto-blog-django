@@ -15,3 +15,17 @@ Este projeto, é um blog desenvolvido por Ygor Lima como parte da conclusão do 
 - docker-compose run --build
 - docker-compose run
 - docker-compose down -v
+
+
+# Relação de models neste projeto 
+
+MenuLink tem um campo:
+``` 
+
+site_setup = models.ForeignKey('SiteSetup', on_delete=models.CASCADE)
+
+```
+
+Isso cria uma relação de muitos para um (many-to-one):
+
+Muitos MenuLink podem estar ligados a um mesmo SiteSetup.
