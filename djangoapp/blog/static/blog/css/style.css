@@ -27,7 +27,7 @@
     /* Font-family */
     --ff-regular: Georgia, 'Times New Roman', Times, serif;
     --ff-headings: Georgia, 'Times New Roman', Times, serif;
-    --ff-mono: 'Courier New', Courier, monospace;
+    --ff-mono: monospace;
 
     /* Font-Sizes */
     /* https://royalfig.github.io/fluid-typography-calculator/ */
@@ -152,12 +152,17 @@ pre {
     max-width: 100%;
     overflow-x: auto;
     line-height: var(--lh-mono);
-    font-size: var(--fs-sm);
+    font-size: var(--fs-smlr);
 }
 
 pre,
 code {
     font-family: var(--ff-mono);
+}
+
+.codeMirror {
+    height: auto !important;
+    font-size: var(--fs-smlr) !important;
 }
 
 input[type='search']::-webkit-search-decoration,
