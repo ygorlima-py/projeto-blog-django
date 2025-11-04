@@ -1,19 +1,22 @@
 <article class="card">
+
+    {% if post.cover and post.cover_in_post_content %}
     <div class="card-cover-wrapper">
-        <a href="#" class="card-cover-link">
+        <a href="{% url "blog:post" post.slug %}" class="card-cover-link">
             <img 
-            src="https://picsum.photos/745/419/?rand=2{{ i }}" 
-            alt="Change me"
+            src="{{post.cover.url}}" 
+            alt="cover do post {{post.title}}"
             class="card-cover"
             loading="lazy">
         </a>
     </div>
+    {% endif %}
 
     <div class="card-text-wrapper">
         <div class="card-title-wrapper">
             <h2 class="card-title">
-                <a href="#" class="card-title-link">
-                    Titulo do Post
+                <a href="{% url "blog:post" post.slug %}" class="card-title-link">
+                    {{post.title}}
                 </a>
             </h2>
         </div>
@@ -21,18 +24,15 @@
 
     <div class="card-content-wrapper">
         <p class="card-content">
-            Conteudo aqui Lorem ipsum dolor sit amet
-            consectetur, adipisicing elit. Ipsa sunt 
-            deleniti amet natus dolorum earum voluptatibus 
-            sequi perferendis corrupti! Quaerat cupiditate 
-            fugit voluptas nam modi.
+            {{post.excerpt}}
         </p>
 
         <div class="card-actions">
-            <a href="#" class="card-action-link">
+            <a href="{% url "blog:post" post.slug %}" class="card-action-link">
                 <span>Leia mais</span>
                 <i class="fa-solid fa-circle-arrow-right"></i>
             </a>
         </div>
     </div>
+    
 </article>
