@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     {% include "blog/partials/_head.html" %}
+    {% block additional_head %}{% endblock additional_head %}
 </head>
 <body>
     <div class="blog-wrapper">
@@ -19,5 +20,6 @@
         {% endif %}
     </div>
 </body>
+{% block code_mirror_static_js %}{% endblock code_mirror_static_js %}
 </html>
 
