@@ -12,4 +12,6 @@ def slugify_new(text: str, k=5):
     return slugify(text) +  "-" + random_letters(k)
 
 
-print(slugify_new('Este blog falaremos sobre'))
+
+if __name__ == '__main__':
+    print(slugify_new('Este blog falaremos sobre'))
