@@ -2,7 +2,7 @@
 
     {% if post.cover and post.cover_in_post_content %}
     <div class="card-cover-wrapper">
-        <a href="{% url "blog:post" post.slug %}" class="card-cover-link">
+        <a href="{{ post.get_absolute_url }}" class="card-cover-link">
             <img 
             src="{{post.cover.url}}" 
             alt="cover do post {{post.title}}"
@@ -15,7 +15,7 @@
     <div class="card-text-wrapper">
         <div class="card-title-wrapper">
             <h2 class="card-title">
-                <a href="{% url "blog:post" post.slug %}" class="card-title-link">
+                <a href="{{ post.get_absolute_url }}" class="card-title-link">
                     {{post.title}}
                 </a>
             </h2>
@@ -28,7 +28,7 @@
         </p>
 
         <div class="card-actions">
-            <a href="{% url "blog:post" post.slug %}" class="card-action-link">
+            <a href="{{ post.get_absolute_url }}" class="card-action-link">
                 <span>Leia mais</span>
                 <i class="fa-solid fa-circle-arrow-right"></i>
             </a>
