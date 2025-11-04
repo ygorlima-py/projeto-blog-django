@@ -71,6 +71,23 @@ def category(request, slug):
         }
     )
 
+def tag(request, slug):
+    posts = Post.objects.get_published().filter(tags__slug=slug) # type: ignore
+    
+    print(posts)
+
+    paginator = Paginator(posts, POSTS_PER_PAGE)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(  
+        request,
+        'blog/pages/index.html',
+        context= {
+            'page_obj': page_obj,
+        }
+    )
+
 def page(request):
 
     return render(
