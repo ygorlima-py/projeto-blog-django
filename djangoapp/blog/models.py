@@ -147,7 +147,10 @@ class Post(models.Model):
     )
     updated_at = models.DateTimeField(auto_now=True)
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True,
+        Category, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
         default=None,
     )
 
