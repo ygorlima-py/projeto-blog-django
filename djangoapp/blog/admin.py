@@ -71,3 +71,5 @@ class PostAdmin(SummernoteModelAdmin):
         obj.save()
 
     
+
+    
