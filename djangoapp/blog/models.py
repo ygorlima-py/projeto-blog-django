@@ -73,6 +73,7 @@ class Page(models.Model):
         verbose_name_plural = 'Pages'
 
     title = models.CharField(max_length=50,)
+    
     slug = models.SlugField(
         unique=True,
         default="",
@@ -85,6 +86,7 @@ class Page(models.Model):
         default = False,
         help_text='Este campo precisará estar marcado para a pagina ser exibida públicamente'
         )
+    
     content = models.TextField()
 
     def get_absolute_url(self):
