@@ -1,12 +1,13 @@
 from typing import Any
-from django.core.paginator import Paginator
 from django.shortcuts import render
 from blog.models import Post, Page
 from django.db.models import Q
 from django.contrib.auth.models import User
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404
 from django.views.generic.list import ListView
 from typing import Any
+from django.db.models.query import QuerySet
+
 
 '''
 Views de exibição genéricas
@@ -37,7 +38,6 @@ class PostListView(ListView):
         })
         return context
 
-
 def post(request, slug):
 
     post_obj = Post.objects.get_published().filter(slug=slug).first() # type: ignore
@@ -51,7 +51,6 @@ def post(request, slug):
             'page_title': post_obj.title
         }
     )
-
 
 class CreatedByListView(PostListView):
     def __init__(self, **kwargs: Any) -> None:
@@ -79,7 +78,7 @@ class CreatedByListView(PostListView):
 
         return qs #type: ignore
     
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def get(self, request, *args, **kwargs):
         author_pk = self.kwargs.get('author_pk')
         user = User.objects.filter(pk=author_pk).first()
 
@@ -91,7 +90,6 @@ class CreatedByListView(PostListView):
         
         return super().get(request, *args, **kwargs)
         
-
 class CategoryListView(PostListView):
     allow_empty = False
 
@@ -110,30 +108,23 @@ class CategoryListView(PostListView):
 
         return context
 
+class TagListView(PostListView):
+    allow_empty = False
 
-def tag(request, slug):
-    posts = Post.objects.get_published().filter(tags__slug=slug) # type: ignore
+    def get_queryset(self) -> QuerySet[Any]:
+        self.slug = self.kwargs.get('slug')
+        qs = super().get_queryset()
+        qs = qs.filter(tags__slug=self.slug)
+
+        return qs
     
+    def get_context_data(self, **kwargs)-> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        tag_name = self.object_list[0].tags.filter(slug=self.slug).first() # type: ignore
+        page_title = f'{tag_name} - Tag - '
+        context.update({'page_title': page_title})
 
-    paginator = Paginator(posts, POSTS_PER_PAGE)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
-    if len(page_obj) == 0:
-        raise Http404
-    
-    page_title = f'{page_obj[0].tags.first().name} - Tag - '
-
-
-    return render(  
-        request,
-        'blog/pages/index.html',
-        context= {
-            'page_obj': page_obj,
-            'page_title': page_title,
-
-        }
-    )
+        return context
 
 def search(request):
     search_value = request.GET.get('search', '').strip()
