@@ -210,6 +210,10 @@ html,
     padding-bottom: var(--spacing-base);
 }
 
+.footer-tpspacing {
+    margin-top: var(--spacing-base);
+}
+
 .center {
     text-align: center;
 }
@@ -314,6 +318,7 @@ html,
     background: hsl(var(--clr-gray-dk));
     color: hsl(var(--clr-white));
 }
+
 
 .footer a {
     color: hsl(var(--clr-white));

@@ -75,8 +75,8 @@ class Page(models.Model):
     title = models.CharField(max_length=50,)
     slug = models.SlugField(
         unique=True,
-        default=None,
-        null=True,
+        default="",
+        null=False,
         blank=True,
         max_length=255,
     )
@@ -86,6 +86,13 @@ class Page(models.Model):
         help_text='Este campo precisará estar marcado para a pagina ser exibida públicamente'
         )
     content = models.TextField()
+
+    def get_absolute_url(self):
+        if not self.is_published:
+            return reverse('blog:index')
+        safety_url = reverse('blog:page', args=(self.slug,))
+        
+        return safety_url
 
     def save(self, *args, **kwargs):
         if not self.slug:
