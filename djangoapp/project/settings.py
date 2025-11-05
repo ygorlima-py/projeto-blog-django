@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-      
+
     # My apps
     'blog',
     'site_setup',
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Django Summernote
     'django_summernote',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
