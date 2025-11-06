@@ -1,10 +1,11 @@
 from typing import Any
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from blog.models import Post, Page
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
 from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 from typing import Any
 from django.db.models.query import QuerySet
 
@@ -37,20 +38,6 @@ class PostListView(ListView):
             'page_title': 'home - ' 
         })
         return context
-
-def post(request, slug):
-
-    post_obj = Post.objects.get_published().filter(slug=slug).first() # type: ignore
-
-    return render(
-        request,
-        'blog/pages/post.html',
-
-        context={
-            'post': post_obj,
-            'page_title': post_obj.title
-        }
-    )
 
 class CreatedByListView(PostListView):
     def __init__(self, **kwargs: Any) -> None:
@@ -126,45 +113,71 @@ class TagListView(PostListView):
 
         return context
 
-def search(request):
-    search_value = request.GET.get('search', '').strip()
-    
-    posts = ( 
-        Post.objects.get_published() # type: ignore
-        .filter(
+class SearchListView(PostListView):
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+        self._search_value = ''
+
+    def setup(self, request, *args, **kwargs):
+        self._search_value = request.GET.get('search', '').strip()
+        return super().setup(request, *args, **kwargs)
+
+    def get_queryset(self) -> QuerySet[Any]:
+        search_value = self._search_value
+        return super().get_queryset().filter(
             Q(title__icontains=search_value) |
             Q(excerpt__icontains=search_value) |
             Q(content__icontains=search_value) 
-            ) [:POSTS_PER_PAGE]
-    )
+        )[:POSTS_PER_PAGE]
     
-    page_title = f'{search_value[:30]} - search'
-
-    return render(  
-        request,
-        'blog/pages/index.html',
-        context= {
-            'page_obj': posts,
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search_value = self._search_value
+        context.update({
+            'page_title': f'{self._search_value[:30]} - search',
             'search_value': search_value,
-            'page_title': page_title,
-
-        }
-    )
-
-def page(request, slug):
-
-    page_obj = Page.objects.filter(is_published=True).filter(slug=slug).first() # type: ignore
+        })
+        return context
     
-    if page_obj is None:
-        raise Http404()
-    
-    page_title = f'{page_obj.title} - '
-    return render(
-        request,
-        'blog/pages/page.html',
-        context={
-            'page': page_obj,
-            'page_title': page_title,
+    def get(self, request, *args, **kwargs):
+        if self._search_value == '':
+            return redirect('blog:index')
+        return super().get(request, *args, **kwargs)
 
-        }
-    )
+class PageDetailView(DetailView): 
+    model = Page
+    template_name = 'blog/pages/page.html'
+    slug_field = 'slug'
+    context_object_name = 'page'
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        contexto = super().get_context_data(**kwargs)
+        page = self.get_object()
+        page_title = f'{page.title} - Página -' #type: ignore
+        contexto.update({
+            'page_title': page_title,
+        })
+
+        return contexto
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(is_published=True)
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/pages/post.html'
+    slug_field = 'slug'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        contexto = super().get_context_data(**kwargs)
+        post = self.get_object()
+        page_title = f'{post.title} - Post -' #type: ignore
+        contexto.update({
+            'page_title': page_title,
+        })
+
+        return contexto
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(is_published=True)
