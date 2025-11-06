@@ -11,10 +11,15 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR.parent / 'data' / 'web'
+
+# DOTENV
+load_dotenv(BASE_DIR.parent / 'dotenv_files' / '.env', override=True)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -47,6 +52,9 @@ INSTALLED_APPS = [
 
     # Django Summernote
     'django_summernote',
+
+    # Axes app can be in any position in the INSTALLED_APPS list.
+    'axes',
 ]
 
 
@@ -58,7 +66,18 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
+    # It only formats user lockout messages and renders Axes lockout responses
+    # on failed user authentication attempts from login views.
+    # If you do not want Axes to override the authentication response
+    # you can skip installing the middleware and use your own views.
+    # AxesMiddleware runs during the reponse phase. It does not conflict
+    # with middleware that runs in the request phase like
+    # django.middleware.cache.FetchFromCacheMiddleware.
+    'axes.middleware.AxesMiddleware',
 ]
+
 
 ROOT_URLCONF = 'project.urls'
 
@@ -171,3 +190,17 @@ SUMMERNOTE_CONFIG = {
     'attachment_filesize_limit': 30 * 1024 * 1024,
     'attachment_model': 'blog.PostAttachment',
 }
+
+AUTHENTICATION_BACKENDS = [
+    # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    'axes.backends.AxesStandaloneBackend',
+
+    # Django ModelBackend is the default authentication backend.
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AXES_ENABLED = True # Ativo
+AXES_FAILURE_LIMIT = 5 # Numero de tentativas
+AXES_COOLOFF_TIME = 1 # Tempo que o usuário fica sem logar
+AXES_RESET_ON_SUCCESS = False 
+AXES_LOCKOUT_PARAMETERS = ['username']
