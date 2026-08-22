@@ -1,0 +1,59 @@
+name: Deploy para VPS
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Produção
+    # Só habilite após configurar a VPS e os GitHub Secrets descritos em deploy.md.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_PORT: ${{ secrets.VPS_PORT }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+      VPS_DEPLOY_PATH: ${{ vars.VPS_DEPLOY_PATH }}
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+
+    steps:
+      - name: Configurar acesso SSH confiável
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Atualizar aplicação e validar deploy
+        run: |
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -p "$VPS_PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" \
+            "cd '$VPS_DEPLOY_PATH' && \
+             git fetch origin main && \
+             git checkout --detach '$DEPLOY_SHA' && \
+             git rev-parse --verify '$DEPLOY_SHA^{commit}' && \
+             docker compose config -q && \
+             docker compose up --build -d --remove-orphans && \
+             docker compose exec -T djangoapp python manage.py check --deploy"

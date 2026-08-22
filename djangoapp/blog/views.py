@@ -35,7 +35,9 @@ class PostListView(ListView):
         context = super().get_context_data(**kwargs)
 
         context.update({
-            'page_title': 'home - ' 
+            'page_title': 'home - ',
+            'listing_eyebrow': 'Diário de viagem',
+            'listing_title': 'Histórias mais recentes',
         })
         return context
 
@@ -54,7 +56,11 @@ class CreatedByListView(PostListView):
 
         page_title = f'Posts de {user_full_name} - '
 
-        context.update({'page_title': page_title,})
+        context.update({
+            'page_title': page_title,
+            'listing_eyebrow': 'Autor',
+            'listing_title': f'Histórias de {user_full_name}',
+        })
 
         return context
 
@@ -91,7 +97,11 @@ class CategoryListView(PostListView):
         context = super().get_context_data(**kwargs)
         category_name = self.object_list[0].category.name # type: ignore 
         page_title = f'{category_name} - Categoria - '
-        context.update({'page_title': page_title})
+        context.update({
+            'page_title': page_title,
+            'listing_eyebrow': 'Categoria',
+            'listing_title': category_name,
+        })
 
         return context
 
@@ -109,7 +119,11 @@ class TagListView(PostListView):
         context = super().get_context_data(**kwargs)
         tag_name = self.object_list[0].tags.filter(slug=self.slug).first() # type: ignore
         page_title = f'{tag_name} - Tag - '
-        context.update({'page_title': page_title})
+        context.update({
+            'page_title': page_title,
+            'listing_eyebrow': 'Tag',
+            'listing_title': str(tag_name),
+        })
 
         return context
 
@@ -136,6 +150,8 @@ class SearchListView(PostListView):
         context.update({
             'page_title': f'{self._search_value[:30]} - search',
             'search_value': search_value,
+            'listing_eyebrow': 'Busca',
+            'listing_title': f'Resultados para “{search_value}”',
         })
         return context
     
