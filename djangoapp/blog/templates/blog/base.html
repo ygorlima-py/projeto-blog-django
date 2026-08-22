@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     {% include "blog/partials/_head.html" %}
     {% block additional_head %}{% endblock additional_head %}
 </head>
-<body>
+<body id="top" class="site-body">
+    <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
     <div class="blog-wrapper">
         {% if site_setup.show_header %}
             {% include "blog/partials/_header.html" %}
@@ -19,7 +20,6 @@
             {% include "blog/partials/_footer.html" %}
         {% endif %}
     </div>
+    {% block code_mirror_static_js %}{% endblock code_mirror_static_js %}
 </body>
-{% block code_mirror_static_js %}{% endblock code_mirror_static_js %}
 </html>
-
