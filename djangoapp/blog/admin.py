@@ -1,8 +1,25 @@
 from django.contrib import admin
-from blog.models import Tag, Category, Page, Post
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from blog.models import AuthorProfile, Tag, Category, Page, Post
 from django_summernote.admin import SummernoteModelAdmin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+
+
+class AuthorProfileInline(admin.StackedInline):
+    model = AuthorProfile
+    can_delete = False
+    extra = 0
+    verbose_name_plural = 'Perfil do autor'
+
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class UserWithProfileAdmin(UserAdmin):
+    inlines = (AuthorProfileInline,)
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -42,12 +59,12 @@ class PageAdmin(SummernoteModelAdmin):
 @admin.register(Post)
 class PostAdmin(SummernoteModelAdmin):
     summernote_fields = ('content',)
-    list_display = 'id', 'title', 'slug', 'is_published', 'content'
+    list_display = 'id', 'title', 'slug', 'is_featured', 'is_published', 'content'
     list_display_links = 'title',
     search_fields = 'id', 'title', 'slug', 'excerpt', 'content',
     list_per_page = 10
-    list_filter = 'category', 'is_published',
-    list_editable = 'is_published',
+    list_filter = 'category', 'is_featured', 'is_published',
+    list_editable = 'is_featured', 'is_published',
     ordering = '-id',
     readonly_fields = 'created_at', 'updated_at', 'updated_by', 'created_by', 'link'
     prepopulated_fields = {
@@ -65,11 +82,7 @@ class PostAdmin(SummernoteModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change:
-            obj.updated_by = request.user 
+            obj.updated_by = request.user
         else:
-            obj.created_by = request.user 
+            obj.created_by = request.user
         obj.save()
-
-    
-
-    

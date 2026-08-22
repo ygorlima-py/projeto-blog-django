@@ -1,4 +1,3 @@
 #!/bin/sh
-makemigrations.sh
-echo 'Execultando migrate.sh'
+echo 'Executando migrate.sh'
 python manage.py migrate --noinput

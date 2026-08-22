@@ -1,61 +1,76 @@
-<header class="header-wrapper">
-    <div class="section-content-wide">
-        <div class="section-gap">
-            <h1 class="blog-title center pb-base">
-                <a href="/" class="blog-link">
-                    {{site_setup.title}}
-                </a>
-            </h1>
+<header class="site-navigation-bar">
+    <div class="site-navigation-shell section-content-wide">
+        <a href="{% url 'blog:index' %}" class="site-brand" aria-label="Página inicial de {{ site_setup.title }}">
+            <span class="site-brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 48 48" focusable="false">
+                    <circle cx="24" cy="24" r="18"></circle>
+                    <path d="M28.5 19.5 25.8 26 19.5 28.5 22.2 22z"></path>
+                    <path d="M24 2v6M24 40v6M2 24h6M40 24h6"></path>
+                </svg>
+            </span>
+            <span class="site-brand-name">{{ site_setup.title }}</span>
+        </a>
 
-            {% if site_setup.show_description %}
-                <p class="blog-description pb-base center">
-                {{site_setup.description}}
-                </p>
+        <div class="site-navigation-actions">
+            {% if site_setup.show_menu %}
+                <nav class="primary-navigation" aria-label="Navegação principal">
+                    <ul class="primary-navigation-list">
+                        {% for link in site_setup.menu.all %}
+                            <li>
+                                <a
+                                    href="{{ link.url_or_path }}"
+                                    {% if request.path == link.url_or_path %}aria-current="page"{% endif %}
+                                    {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                >{{ link.text }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
             {% endif %}
 
             {% if site_setup.show_search %}
-            <div class="search pb-base center">
-                <form class="search-form" action="{% url "blog:search" %}" method="GET">
-                    <div class="search-content">
-                        <label for="search-input" class="sr-only" id="search-label"></label>
-                        <input 
-                        type="search" 
-                        class="search-input"
-                        name="search"
-                        id="search-input"
-                        placeholder="Search"
-                        value="{{ search_value }}"
-                        required
-                        >
-
-                        <button class="search-btn" type="submit"
-                        arialabelledby="search-label">
-                            <i class="fa fa-search"></i>
-                        </button>
+                <details class="header-search">
+                    <summary aria-label="Abrir pesquisa">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                            <path d="m15.5 15.5 5 5"></path>
+                        </svg>
+                    </summary>
+                    <div class="header-search-panel">
+                        <form class="header-search-form" action="{% url 'blog:search' %}" method="GET">
+                            <label for="search-input" class="sr-only">Pesquisar no blog</label>
+                            <input
+                                type="search"
+                                name="search"
+                                id="search-input"
+                                placeholder="O que você procura?"
+                                value="{{ search_value }}"
+                                required
+                            >
+                            <button type="submit" aria-label="Pesquisar">
+                                <span aria-hidden="true">→</span>
+                            </button>
+                        </form>
                     </div>
-                </form>
-            </div>
+                </details>
             {% endif %}
-            
-            {% if site_setup.show_menu %}
-            <nav class="menu">
-                <ul class="menu-items">
-                    
-                    {% for link in site_setup.menu.all %}
-                    <li class="menu-item">
-                        {% if link.new_tab %}
-                            <a target="_blank" href="{{link.url_or_path}}" class="menu-item">{{link.text}}</a>
-                        {% else %}
-                            <a href="{{link.url_or_path}}" class="menu-item">{{link.text}}</a>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-
-                </ul>
-            </nav>
-            {% endif %}
-
         </div>
     </div>
 </header>
 
+{% if request.resolver_match.url_name == 'index' %}
+    <section class="site-hero" aria-labelledby="site-hero-title">
+        <div class="site-hero-decoration" aria-hidden="true"></div>
+        <div class="site-hero-content section-content-wide">
+            <span class="site-hero-route" aria-hidden="true">
+                <i></i>
+                <span></span>
+                <i></i>
+            </span>
+            <h1 id="site-hero-title">{{ site_setup.title }}</h1>
+            {% if site_setup.show_description and site_setup.description %}
+                <p>{{ site_setup.description }}</p>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}

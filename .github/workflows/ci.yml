@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  django:
+    name: Django
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: blog_ci
+          POSTGRES_USER: blog_ci
+          POSTGRES_PASSWORD: blog_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blog_ci -d blog_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_ENGINE: django.db.backends.postgresql
+      POSTGRES_DB: blog_ci
+      POSTGRES_USER: blog_ci
+      POSTGRES_PASSWORD: blog_ci_password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: '5432'
+      SECRET_KEY: ci-only-secret-key-that-is-longer-than-fifty-characters-123456
+      DEBUG: '1'
+      ALLOWED_HOSTS: localhost,127.0.0.1
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: djangoapp/requirements.txt
+
+      - name: Instalar dependências
+        run: python -m pip install -r djangoapp/requirements.txt
+
+      - name: Validar configuração Django
+        run: python djangoapp/manage.py check
+
+      - name: Garantir migrations versionadas
+        run: python djangoapp/manage.py makemigrations --check --dry-run
+
+      - name: Executar testes
+        run: python djangoapp/manage.py test --noinput
+
+      - name: Validar configuração de produção
+        env:
+          DEBUG: '0'
+          ALLOWED_HOSTS: blog.example.test
+          CSRF_TRUSTED_ORIGINS: https://blog.example.test
+          SECURE_SSL_REDIRECT: '1'
+          SESSION_COOKIE_SECURE: '1'
+          CSRF_COOKIE_SECURE: '1'
+          SECURE_HSTS_SECONDS: '31536000'
+          SECURE_HSTS_INCLUDE_SUBDOMAINS: '1'
+          SECURE_HSTS_PRELOAD: '1'
+          TRUST_X_FORWARDED_PROTO: '1'
+        run: python djangoapp/manage.py check --deploy

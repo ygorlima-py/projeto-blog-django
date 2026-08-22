@@ -1,11 +1,72 @@
-<footer class="footer section-wrapper footer-tpspacing">
-    <div class="section-content-wide">
-        <div class="section-gap">
-            <div class="center">
-                <a href="#">
-                    © {% now "Y" %} {{site_setup.title}} - Todos os direitos reservados. 
-                </a>
-            </div>
+<footer class="site-footer">
+    <div class="site-footer-content section-content-wide">
+        <div class="site-footer-brand">
+            <a href="{% url 'blog:index' %}" class="site-brand site-brand-footer">
+                <span class="site-brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" focusable="false">
+                        <circle cx="24" cy="24" r="18"></circle>
+                        <path d="M28.5 19.5 25.8 26 19.5 28.5 22.2 22z"></path>
+                        <path d="M24 2v6M24 40v6M2 24h6M40 24h6"></path>
+                    </svg>
+                </span>
+                <span class="site-brand-name">{{ site_setup.title }}</span>
+            </a>
+            {% if site_setup.show_description and site_setup.description %}
+                <p>{{ site_setup.description }}</p>
+            {% endif %}
         </div>
+
+        {% if site_setup.show_menu %}
+            <nav class="footer-navigation" aria-label="Navegação do rodapé">
+                <p>Explore</p>
+                <ul>
+                    {% for link in site_setup.menu.all %}
+                        <li>
+                            <a
+                                href="{{ link.url_or_path }}"
+                                {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                            >{{ link.text }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% endif %}
+
+        {% if site_setup.social_links.exists %}
+            <nav class="footer-social" aria-label="Redes sociais">
+                <p>Acompanhe</p>
+                <ul>
+                    {% for social_link in site_setup.social_links.all %}
+                        <li>
+                            <a
+                                href="{{ social_link.url }}"
+                                aria-label="{{ social_link.display_name }}"
+                                title="{{ social_link.display_name }}"
+                                {% if social_link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                            >
+                                <span aria-hidden="true">
+                                    {% if social_link.platform == 'instagram' %}◎
+                                    {% elif social_link.platform == 'youtube' %}▶
+                                    {% elif social_link.platform == 'tiktok' %}♪
+                                    {% elif social_link.platform == 'facebook' %}f
+                                    {% elif social_link.platform == 'linkedin' %}in
+                                    {% elif social_link.platform == 'github' %}GH
+                                    {% elif social_link.platform == 'x-twitter' %}X
+                                    {% else %}↗{% endif %}
+                                </span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+    <div class="site-footer-bottom section-content-wide">
+        <p>© {% now "Y" %} {{ site_setup.title }}. Todos os direitos reservados.</p>
+        <a href="#top" aria-label="Voltar ao topo">
+            Voltar ao topo
+            <span aria-hidden="true">↑</span>
+        </a>
     </div>
 </footer>
