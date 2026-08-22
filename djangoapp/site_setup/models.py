@@ -9,14 +9,34 @@ class MenuLink(models.Model):
         verbose_name = 'Menu Link'
         verbose_name_plural = 'Menu Links'
 
+    class Placement(models.TextChoices):
+        BOTH = 'both', 'Cabeçalho e rodapé'
+        HEADER = 'header', 'Somente cabeçalho'
+        FOOTER = 'footer', 'Somente rodapé'
+
     text = models.CharField(max_length=50)
     url_or_path = models.CharField(max_length=255, validators=[validate_menu_url])
     new_tab = models.BooleanField(default=False)
+    placement = models.CharField(
+        'Exibir em',
+        max_length=6,
+        choices=Placement.choices,
+        default=Placement.BOTH,
+    )
     site_setup = models.ForeignKey(
         'SiteSetup', on_delete=models.CASCADE,
         blank=True, null=True, default=None,
         related_name='menu'
     )
+
+    @property
+    def show_in_header(self):
+        return self.placement in {self.Placement.BOTH, self.Placement.HEADER}
+
+    @property
+    def show_in_footer(self):
+        return self.placement in {self.Placement.BOTH, self.Placement.FOOTER}
+
     def __str__(self):
         return self.text
 

@@ -63,6 +63,23 @@ class DynamicMenuTests(TestCase):
         self.assertContains(response, menu_link.text, count=2)
         self.assertContains(response, f'href="{menu_link.url_or_path}"', count=2)
 
+    def test_footer_only_link_is_not_rendered_in_header(self):
+        site_setup = SiteSetup.objects.create(
+            title='Rota Asiática',
+            description='Vida e viagens pela Tailândia.',
+        )
+        menu_link = MenuLink.objects.create(
+            site_setup=site_setup,
+            text='Política de Privacidade',
+            url_or_path='/page/politica-de-privacidade/',
+            placement=MenuLink.Placement.FOOTER,
+        )
+
+        response = self.client.get(reverse('blog:index'))
+
+        self.assertContains(response, menu_link.text, count=1)
+        self.assertContains(response, f'href="{menu_link.url_or_path}"', count=1)
+
     def test_menu_rejects_javascript_and_unencrypted_external_urls(self):
         invalid_links = (
             'javascript:alert(1)',

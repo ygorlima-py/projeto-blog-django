@@ -21,12 +21,14 @@
                 <p>Explore</p>
                 <ul>
                     {% for link in site_setup.menu.all %}
-                        <li>
-                            <a
-                                href="{{ link.url_or_path }}"
-                                {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
-                            >{{ link.text }}</a>
-                        </li>
+                        {% if link.show_in_footer %}
+                            <li>
+                                <a
+                                    href="{{ link.url_or_path }}"
+                                    {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                >{{ link.text }}</a>
+                            </li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </nav>
