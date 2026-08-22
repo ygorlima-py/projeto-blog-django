@@ -1,5 +1,5 @@
 from django.contrib import admin
-from site_setup.models import MenuLink, SiteSetup
+from site_setup.models import MenuLink, SiteSetup, SocialLink
 # Register your models here.
 
 # @admin.register(MenuLink)
@@ -12,12 +12,16 @@ class MenuLinkInline(admin.TabularInline):
     model = MenuLink
     extra = 1
 
+
+class SocialLinkInline(admin.TabularInline):
+    model = SocialLink
+    extra = 1
+
 @admin.register(SiteSetup)
 class SiteSetupAdmin(admin.ModelAdmin):
     list_display = 'title', 'description',
-    inlines = MenuLinkInline,
+    inlines = MenuLinkInline, SocialLinkInline
     
     def has_add_permission(self, request):
         return not SiteSetup.objects.exists()
-
 

@@ -1,27 +1,69 @@
 {% extends "blog/base.html" %}
 
 {% block content %}
-<main class="main-content section-wrappper">
-    <div class="section-content-wide">
-        <div class="section-gap">
-            {% if posts %}
-                <div class="card-grid">
-                    {% for post in posts %}
-                        {% include "blog/partials/_post-card.html" with i=forloop.counter0%}
+<main id="main-content" class="main-content listing-page">
+    {% if navigation_categories and request.resolver_match.url_name == 'index' %}
+        <div class="category-navigation-shell">
+            <nav class="category-navigation section-content-wide" aria-label="Categorias do blog">
+                <ul class="category-navigation-list">
+                    <li>
+                        <a
+                            href="{% url 'blog:index' %}"
+                            {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}
+                        >Todos</a>
+                    </li>
+                    {% for category in navigation_categories %}
+                        {% url 'blog:category' category.slug as category_url %}
+                        <li>
+                            <a
+                                href="{{ category_url }}"
+                                {% if request.path == category_url %}aria-current="page"{% endif %}
+                            >{{ category.name }}</a>
+                        </li>
                     {% endfor %}
-                </div>
-            
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+
+    <section class="posts-section section-content-wide" aria-labelledby="posts-title">
+        <header class="section-heading">
+            {% if listing_eyebrow %}<p>{{ listing_eyebrow }}</p>{% endif %}
+            {% if request.resolver_match.url_name == 'index' %}
+                <h2 id="posts-title">{{ listing_title }}</h2>
             {% else %}
-                <div class="not-found center">
-                    <h1> Nenhum Resultado encontrado </h1>
-                    <p>
-                        Nenhum resultado da sua busca foi encontrado,
-                        para retornar ao início da pagina clique em 
-                        <a href="{% url "blog:index" %}">Home</a>
-                    <p> 
-                </div>       
+                <h1 id="posts-title">{{ listing_title }}</h1>
             {% endif %}
-        </div> 
-    </div>
+            <span aria-hidden="true"></span>
+        </header>
+
+        {% if posts %}
+            <div class="post-grid">
+                {% for post in posts %}
+                    {% if forloop.first %}
+                        {% include "blog/partials/_post-card.html" with featured_card=True %}
+                    {% else %}
+                        {% include "blog/partials/_post-card.html" %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <span class="empty-state-icon" aria-hidden="true">
+                    ✦
+                </span>
+                <h1>Nenhuma história encontrada</h1>
+                {% if search_value %}
+                    <p>Não encontramos resultados para “{{ search_value }}”. Tente pesquisar outro termo.</p>
+                {% else %}
+                    <p>Novas histórias serão publicadas por aqui em breve.</p>
+                {% endif %}
+                <a class="text-link" href="{% url 'blog:index' %}">
+                    Voltar para o início
+                    <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        {% endif %}
+    </section>
 </main>
 {% endblock content %}

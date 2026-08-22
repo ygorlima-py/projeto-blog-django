@@ -12,28 +12,69 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
+from blog.security import staff_user_can_upload_rich_text_images
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR.parent / 'data' / 'web'
 
 # DOTENV
-load_dotenv(BASE_DIR.parent / 'dotenv_files' / '.env', override=True)
+load_dotenv(BASE_DIR.parent / 'dotenv_files' / '.env', override=False)
+
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(name):
+    return [item.strip() for item in os.getenv(name, '').split(',') if item.strip()]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'change-me')
+SECRET_KEY = os.getenv('SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.getenv('DEBUG',0)))
+DEBUG = env_bool('DEBUG')
 
-ALLOWED_HOSTS = [
-    h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',')
-    if h.strip()
-    ]
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS')
+
+if not DEBUG:
+    unsafe_secret_keys = {'', 'change-me', 'CHANGE-ME'}
+    if (
+        SECRET_KEY in unsafe_secret_keys
+        or SECRET_KEY.startswith('django-insecure-')
+        or len(SECRET_KEY) < 50
+    ):
+        raise ImproperlyConfigured(
+            'Defina uma SECRET_KEY longa e exclusiva antes de iniciar em produção.'
+        )
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured(
+            'Defina ALLOWED_HOSTS antes de iniciar em produção.'
+        )
+
+SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', default=not DEBUG)
+SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', default=not DEBUG)
+CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', default=not DEBUG)
+SESSION_COOKIE_HTTPONLY = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_HSTS_SECONDS = int(
+    os.getenv('SECURE_HSTS_SECONDS', '31536000' if not DEBUG else '0')
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS')
+SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD')
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
+
+if env_bool('TRUST_X_FORWARDED_PROTO'):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -51,7 +92,7 @@ INSTALLED_APPS = [
     'site_setup',
 
     # Django Summernote
-    'django_summernote',
+    'project.apps.ProjectSummernoteConfig',
 
     # Axes app can be in any position in the INSTALLED_APPS list.
     'axes',
@@ -91,6 +132,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'blog.context_processors.navigation_categories',
                 'site_setup.context_processors.context_processor_example',
                 'site_setup.context_processors.site_setup',
             ],
@@ -151,11 +193,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 # /data/web/static
 STATIC_ROOT = DATA_DIR / 'static'
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 # /data/web/media
 MEDIA_ROOT = DATA_DIR / 'media'
 
@@ -187,8 +229,10 @@ SUMMERNOTE_CONFIG = {
     'css': (
         '//cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css',
     ),
-    'attachment_filesize_limit': 30 * 1024 * 1024,
+    'attachment_filesize_limit': 10 * 1024 * 1024,
     'attachment_model': 'blog.PostAttachment',
+    'attachment_require_authentication': True,
+    'test_func_upload_view': staff_user_can_upload_rich_text_images,
 }
 
 AUTHENTICATION_BACKENDS = [
