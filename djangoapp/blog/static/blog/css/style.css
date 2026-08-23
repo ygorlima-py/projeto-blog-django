@@ -587,7 +587,8 @@ summary:focus-visible {
 }
 
 .post-card-media {
-    aspect-ratio: 3 / 4;
+    /* Capas editoriais horizontais, como em blogs de viagem. */
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     background: #dce5df;
 }
@@ -783,7 +784,7 @@ a.post-label:hover {
 .post-card-featured .post-card-media {
     height: auto;
     min-height: 0;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 16 / 9;
 }
 
 .post-card-featured .post-card-body {
@@ -917,8 +918,8 @@ a.post-label:hover {
 }
 
 .article-cover {
-    width: min(calc(100% - 4rem), 60rem);
-    aspect-ratio: 3 / 4;
+    width: min(calc(100% - 4rem), 96rem);
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     margin-inline: auto;
     margin-bottom: var(--space-8);
@@ -1356,7 +1357,7 @@ a.post-label:hover {
 
     .post-card-featured .post-card-media {
         min-height: 0;
-        aspect-ratio: 3 / 4;
+        aspect-ratio: 16 / 9;
     }
 
     .post-card-featured .post-card-body {
