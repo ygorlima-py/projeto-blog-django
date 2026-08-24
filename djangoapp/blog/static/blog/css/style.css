@@ -784,8 +784,8 @@ a.post-label:hover {
 .post-card-featured .post-card-media {
     height: auto;
     min-height: 0;
-    aspect-ratio: 4 / 3;
-    align-self: start;
+    aspect-ratio: auto;
+    align-self: stretch;
 }
 
 .post-card-featured .post-card-body {
