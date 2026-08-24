@@ -8,6 +8,7 @@ db.sqlite3
 /djangoapp/media/
 /djangoapp/project/local_settings.py
 /data/
+/backups/
 
 # Backup files # 
 *.bak 
