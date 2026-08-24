@@ -82,7 +82,7 @@ class PublicBlogViewsTests(TestCase):
         )
 
         published_response = self.client.get(published_page.get_absolute_url())
-        draft_response = self.client.get(draft_page.get_absolute_url())
+        draft_response = self.client.get(f'/pagina/{draft_page.slug}/')
 
         self.assertEqual(published_response.status_code, 200)
         self.assertTemplateUsed(published_response, 'blog/pages/page.html')
@@ -215,3 +215,28 @@ class PublicBlogViewsTests(TestCase):
         for url in urls:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_sitemap_contains_only_public_content(self):
+        published_post = self.create_post(
+            title='Post no sitemap',
+            slug='post-no-sitemap',
+        )
+        self.create_post(
+            title='Rascunho fora do sitemap',
+            slug='rascunho-fora-do-sitemap',
+            is_published=False,
+        )
+        published_page = Page.objects.create(
+            title='Página no sitemap',
+            slug='pagina-no-sitemap',
+            content='Conteúdo público.',
+            is_published=True,
+        )
+
+        response = self.client.get('/sitemap.xml')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/xml')
+        self.assertContains(response, published_post.get_absolute_url())
+        self.assertContains(response, published_page.get_absolute_url())
+        self.assertNotContains(response, 'rascunho-fora-do-sitemap')
