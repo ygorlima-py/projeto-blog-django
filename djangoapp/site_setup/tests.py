@@ -45,6 +45,22 @@ class DynamicSiteIdentityTests(TestCase):
         self.assertContains(response, 'Nome editável')
         self.assertContains(response, 'Descrição editável pelo painel.')
 
+    def test_uploaded_logo_replaces_the_fallback_compass(self):
+        SiteSetup.objects.create(
+            title='Descubra Ásia',
+            description='Vida e viagens pela Ásia.',
+            logo='assets/logo/2026/08/logo.png',
+        )
+
+        response = self.client.get(reverse('blog:index'))
+
+        self.assertContains(
+            response,
+            'src="/media/assets/logo/2026/08/logo.png"',
+            count=2,
+        )
+        self.assertNotContains(response, 'viewBox="0 0 48 48"')
+
 
 class DynamicMenuTests(TestCase):
     def test_menu_link_created_in_admin_is_rendered_in_header_and_footer(self):

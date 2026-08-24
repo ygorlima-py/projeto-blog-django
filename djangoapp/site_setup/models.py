@@ -115,16 +115,33 @@ class SiteSetup(models.Model):
         validators=[validate_png],
     )
 
+    logo = models.ImageField(
+        'Logo do site',
+        upload_to='assets/logo/%Y/%m/',
+        blank=True,
+        default='',
+        help_text='Envie o logo completo em PNG, de preferência com fundo transparente.',
+        validators=[validate_png],
+    )
+
     def save(self, *args, **kwargs):
         current_favicon_name = str(self.favicon.name)
+        current_logo_name = str(self.logo.name)
         super().save(*args, **kwargs)
         favicon_changed = False
+        logo_changed = False
 
         if self.favicon:
-            favicon_changed = current_favicon_name != self.favicon.name        
+            favicon_changed = current_favicon_name != self.favicon.name
+
+        if self.logo:
+            logo_changed = current_logo_name != self.logo.name
 
         if favicon_changed:
             resize_image(self.favicon, 32)
+
+        if logo_changed:
+            resize_image(self.logo, 600)
         
 
     def __str__(self):
