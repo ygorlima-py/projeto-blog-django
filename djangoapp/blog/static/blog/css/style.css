@@ -784,25 +784,32 @@ a.post-label:hover {
 .post-card-featured .post-card-media {
     height: auto;
     min-height: 0;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 4 / 3;
+    align-self: start;
 }
 
 .post-card-featured .post-card-body {
-    justify-content: center;
-    padding: var(--space-7);
+    justify-content: flex-start;
+    padding: var(--space-6);
 }
 
 .post-card-featured .post-card-title {
-    font-size: clamp(3.6rem, 4.5vw, 5.6rem);
+    font-size: clamp(3.2rem, 3.8vw, 4.6rem);
 }
 
 .post-card-featured .post-card-excerpt {
     font-size: var(--text-base);
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
+    margin-bottom: var(--space-4);
 }
 
 .post-card-featured .post-card-meta {
-    margin-top: var(--space-7);
+    margin-top: var(--space-4);
+}
+
+/* O título já é clicável; o destaque não precisa repetir a ação. */
+.post-card-featured .post-card-action {
+    display: none;
 }
 
 .empty-state {
@@ -1356,8 +1363,10 @@ a.post-label:hover {
     }
 
     .post-card-featured .post-card-media {
+        height: auto;
         min-height: 0;
         aspect-ratio: 16 / 9;
+        align-self: auto;
     }
 
     .post-card-featured .post-card-body {
@@ -1366,6 +1375,10 @@ a.post-label:hover {
 
     .post-card-featured .post-card-title {
         font-size: clamp(3rem, 8vw, 4.2rem);
+    }
+
+    .post-card-featured .post-card-action {
+        display: inline-flex;
     }
 
     .article-header,
