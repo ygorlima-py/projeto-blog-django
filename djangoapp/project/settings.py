@@ -197,6 +197,22 @@ STATIC_URL = '/static/'
 # /data/web/static
 STATIC_ROOT = DATA_DIR / 'static'
 
+# Em produção, o Django acrescenta um hash ao nome de cada arquivo estático
+# (por exemplo, style.a1b2c3.css). Quando o conteúdo muda, o nome muda também
+# e navegador/CDN não reutilizam uma versão antiga do CSS.
+if not DEBUG:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': (
+                'django.contrib.staticfiles.storage.'
+                'ManifestStaticFilesStorage'
+            ),
+        },
+    }
+
 MEDIA_URL = '/media/'
 # /data/web/media
 MEDIA_ROOT = DATA_DIR / 'media'
