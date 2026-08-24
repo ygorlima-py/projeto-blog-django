@@ -82,12 +82,20 @@ class PublicBlogViewsTests(TestCase):
         )
 
         published_response = self.client.get(published_page.get_absolute_url())
-        draft_response = self.client.get(f'/page/{draft_page.slug}/')
+        draft_response = self.client.get(draft_page.get_absolute_url())
 
         self.assertEqual(published_response.status_code, 200)
         self.assertTemplateUsed(published_response, 'blog/pages/page.html')
         self.assertContains(published_response, published_page.title)
         self.assertEqual(draft_response.status_code, 404)
+
+        legacy_response = self.client.get(f'/page/{published_page.slug}/')
+        self.assertRedirects(
+            legacy_response,
+            published_page.get_absolute_url(),
+            status_code=301,
+            target_status_code=200,
+        )
 
     def test_category_and_tag_pages_hide_unpublished_posts(self):
         published_post = self.create_post(title='Visto publicado', slug='visto-publicado')
@@ -107,6 +115,16 @@ class PublicBlogViewsTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, published_post.title)
                 self.assertNotContains(response, draft_post.title)
+
+        legacy_category_response = self.client.get(
+            f'/category/{self.category.slug}/',
+        )
+        self.assertRedirects(
+            legacy_category_response,
+            reverse('blog:category', args=(self.category.slug,)),
+            status_code=301,
+            target_status_code=200,
+        )
 
     def test_author_page_shows_only_the_authors_published_posts(self):
         author_post = self.create_post(title='Post do autor', slug='post-do-autor')

@@ -55,7 +55,7 @@ class DynamicMenuTests(TestCase):
         menu_link = MenuLink.objects.create(
             site_setup=site_setup,
             text='Vistos',
-            url_or_path='/category/vistos/',
+            url_or_path='/categoria/vistos/',
         )
 
         response = self.client.get(reverse('blog:index'))
@@ -71,7 +71,7 @@ class DynamicMenuTests(TestCase):
         menu_link = MenuLink.objects.create(
             site_setup=site_setup,
             text='Política de Privacidade',
-            url_or_path='/page/politica-de-privacidade/',
+            url_or_path='/pagina/politica-de-privacidade/',
             placement=MenuLink.Placement.FOOTER,
         )
 
@@ -95,7 +95,7 @@ class DynamicMenuTests(TestCase):
                     menu_link.full_clean()
 
     def test_menu_accepts_internal_paths_anchors_and_https_urls(self):
-        valid_links = ('/category/vistos/', '#top', 'https://www.instagram.com/')
+        valid_links = ('/categoria/vistos/', '#top', 'https://www.instagram.com/')
 
         for url_or_path in valid_links:
             with self.subTest(url_or_path=url_or_path):
