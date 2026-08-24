@@ -193,7 +193,7 @@ summary:focus-visible {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-1);
     color: var(--color-primary);
 }
 
@@ -201,6 +201,18 @@ summary:focus-visible {
     transform: rotate(12deg);
     border-color: var(--color-accent);
     color: var(--color-accent);
+}
+
+.site-brand-logo {
+    display: block;
+    width: auto;
+    max-width: min(22rem, 38vw);
+    height: 4.4rem;
+    object-fit: contain;
+}
+
+.site-brand:hover .site-brand-logo {
+    transform: none;
 }
 
 .site-brand-mark {
@@ -1422,6 +1434,11 @@ a.post-label:hover {
         width: 4rem;
         height: 4rem;
         flex-basis: 4rem;
+    }
+
+    .site-brand-logo {
+        max-width: 18rem;
+        height: 4rem;
     }
 
     .site-navigation-actions {

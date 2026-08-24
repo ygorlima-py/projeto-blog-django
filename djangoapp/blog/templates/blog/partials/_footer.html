@@ -2,14 +2,19 @@
     <div class="site-footer-content section-content-wide">
         <div class="site-footer-brand">
             <a href="{% url 'blog:index' %}" class="site-brand site-brand-footer">
-                <span class="site-brand-mark" aria-hidden="true">
-                    <svg viewBox="0 0 48 48" focusable="false">
-                        <circle cx="24" cy="24" r="18"></circle>
-                        <path d="M28.5 19.5 25.8 26 19.5 28.5 22.2 22z"></path>
-                        <path d="M24 2v6M24 40v6M2 24h6M40 24h6"></path>
-                    </svg>
-                </span>
-                <span class="site-brand-name">{{ site_setup.title }}</span>
+                {% if site_setup.logo %}
+                    <img class="site-brand-logo" src="{{ site_setup.logo.url }}" alt="" aria-hidden="true">
+                    <span class="site-brand-name">{{ site_setup.title }}</span>
+                {% else %}
+                    <span class="site-brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 48 48" focusable="false">
+                            <circle cx="24" cy="24" r="18"></circle>
+                            <path d="M28.5 19.5 25.8 26 19.5 28.5 22.2 22z"></path>
+                            <path d="M24 2v6M24 40v6M2 24h6M40 24h6"></path>
+                        </svg>
+                    </span>
+                    <span class="site-brand-name">{{ site_setup.title }}</span>
+                {% endif %}
             </a>
             {% if site_setup.show_description and site_setup.description %}
                 <p>{{ site_setup.description }}</p>

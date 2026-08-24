@@ -1,14 +1,19 @@
 <header class="site-navigation-bar">
     <div class="site-navigation-shell section-content-wide">
         <a href="{% url 'blog:index' %}" class="site-brand" aria-label="Página inicial de {{ site_setup.title }}">
-            <span class="site-brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 48 48" focusable="false">
-                    <circle cx="24" cy="24" r="18"></circle>
-                    <path d="M28.5 19.5 25.8 26 19.5 28.5 22.2 22z"></path>
-                    <path d="M24 2v6M24 40v6M2 24h6M40 24h6"></path>
-                </svg>
-            </span>
-            <span class="site-brand-name">{{ site_setup.title }}</span>
+            {% if site_setup.logo %}
+                <img class="site-brand-logo" src="{{ site_setup.logo.url }}" alt="" aria-hidden="true">
+                <span class="site-brand-name">{{ site_setup.title }}</span>
+            {% else %}
+                <span class="site-brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" focusable="false">
+                        <circle cx="24" cy="24" r="18"></circle>
+                        <path d="M28.5 19.5 25.8 26 19.5 28.5 22.2 22z"></path>
+                        <path d="M24 2v6M24 40v6M2 24h6M40 24h6"></path>
+                    </svg>
+                </span>
+                <span class="site-brand-name">{{ site_setup.title }}</span>   
+            {% endif %}
         </a>
 
         <div class="site-navigation-actions">
