@@ -61,6 +61,10 @@
             {% if post.cover and post.cover_in_post_content %}
                 <figure class="article-cover section-content-feature">
                     <img src="{{ post.cover.url }}" alt="Capa do artigo {{ post.title }}">
+
+                    {% if post.cover_caption %}
+                        <figcaption>{{ post.cover_caption }}</figcaption>
+                    {% endif %}
                 </figure>
             {% endif %}
 
