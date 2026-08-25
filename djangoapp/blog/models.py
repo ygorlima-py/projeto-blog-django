@@ -175,6 +175,12 @@ class Post(models.Model):
     content = models.TextField()
 
     cover = models.ImageField(upload_to='posts/%Y/%m', blank=True, default='')
+    
+    cover_caption = models.CharField(
+        'Legenda da capa',
+        max_length=255,
+        blank=True,
+    )
 
     cover_in_post_content = models.BooleanField(
         default=True,
