@@ -49,18 +49,11 @@
                                 href="{{ social_link.url }}"
                                 aria-label="{{ social_link.display_name }}"
                                 title="{{ social_link.display_name }}"
-                                {% if social_link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                {% if social_link.new_tab %}
+                                target="_blank" rel="noopener noreferrer"
+                                {% endif %}
                             >
-                                <span aria-hidden="true">
-                                    {% if social_link.platform == 'instagram' %}◎
-                                    {% elif social_link.platform == 'youtube' %}▶
-                                    {% elif social_link.platform == 'tiktok' %}♪
-                                    {% elif social_link.platform == 'facebook' %}f
-                                    {% elif social_link.platform == 'linkedin' %}in
-                                    {% elif social_link.platform == 'github' %}GH
-                                    {% elif social_link.platform == 'x-twitter' %}X
-                                    {% else %}↗{% endif %}
-                                </span>
+                                <span class="{{ social_link.icon_class }}" aria-hidden="true"></span>
                             </a>
                         </li>
                     {% endfor %}
