@@ -153,7 +153,7 @@ class Post(models.Model):
 
     objects = PostManager()
 
-    title = models.CharField(max_length=50,)
+    title = models.CharField(max_length=125,)
     slug = models.SlugField(
         unique=True,
         default="",
@@ -162,7 +162,7 @@ class Post(models.Model):
         max_length=255,
     )
 
-    excerpt = models.CharField(max_length=150)
+    excerpt = models.CharField(max_length=250)
 
     is_published = models.BooleanField(
         default = True,
