@@ -47,7 +47,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Page)
 class PageAdmin(SummernoteModelAdmin):
     summernote_fields = ('content',)
-    list_display = 'id', 'title', 'slug', 'is_published', 'content'
+    list_display = 'id', 'title', 'slug', 'is_published',
     list_display_links = 'title',
     search_fields = 'id', 'title', 'slug',
     list_per_page = 10
@@ -59,7 +59,7 @@ class PageAdmin(SummernoteModelAdmin):
 @admin.register(Post)
 class PostAdmin(SummernoteModelAdmin):
     summernote_fields = ('content',)
-    list_display = 'id', 'title', 'slug', 'is_featured', 'is_published', 'content'
+    list_display = 'id', 'title', 'slug', 'is_featured', 'is_published',
     list_display_links = 'title',
     search_fields = 'id', 'title', 'slug', 'excerpt', 'content',
     list_per_page = 10

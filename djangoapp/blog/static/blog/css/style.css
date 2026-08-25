@@ -703,7 +703,8 @@ a.post-label:hover {
     font-size: var(--text-sm);
     line-height: 1.7;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    line-clamp: 4;
+    -webkit-line-clamp: 4;
 }
 
 .post-card-meta {
@@ -817,7 +818,8 @@ a.post-label:hover {
 
 .post-card-featured .post-card-excerpt {
     font-size: var(--text-base);
-    -webkit-line-clamp: 2;
+    line-clamp: 4;
+    -webkit-line-clamp: 4;
     margin-bottom: var(--space-4);
 }
 
