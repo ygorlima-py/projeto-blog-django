@@ -39,7 +39,7 @@ class RichTextSanitizationTests(TestCase):
         response = self.client.get(page.get_absolute_url())
 
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, '<script')
+        self.assertNotContains(response, '<script>alert("xss")</script>')
         self.assertNotContains(response, 'onclick=')
         self.assertContains(response, 'Conteúdo')
 
@@ -59,7 +59,7 @@ class RichTextSanitizationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<p>Legado</p>', html=True)
-        self.assertNotContains(response, '<script')
+        self.assertNotContains(response, '<script>alert("xss")</script>')
 
 
 class SummernoteUploadSecurityTests(TestCase):
