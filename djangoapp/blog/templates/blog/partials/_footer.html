@@ -64,9 +64,14 @@
 
     <div class="site-footer-bottom section-content-wide">
         <p>© {% now "Y" %} {{ site_setup.title }}. Todos os direitos reservados.</p>
-        <a href="#top" aria-label="Voltar ao topo">
-            Voltar ao topo
-            <span aria-hidden="true">↑</span>
-        </a>
+        <div class="site-footer-bottom-actions">
+            <button class="footer-cookie-settings" type="button" data-cookie-open-preferences>
+                Configurar cookies
+            </button>
+            <a href="#top" aria-label="Voltar ao topo">
+                Voltar ao topo
+                <span aria-hidden="true">↑</span>
+            </a>
+        </div>
     </div>
 </footer>

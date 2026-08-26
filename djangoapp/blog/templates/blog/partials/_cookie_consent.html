@@ -1,0 +1,140 @@
+<section
+    class="cookie-banner"
+    data-cookie-banner
+    hidden
+    aria-labelledby="cookie-banner-title"
+    aria-describedby="cookie-banner-description"
+>
+    <div class="cookie-banner-content">
+        <div class="cookie-banner-copy">
+            <p class="cookie-eyebrow">Privacidade</p>
+            <h2 id="cookie-banner-title">Você escolhe como seus dados são usados</h2>
+            <p id="cookie-banner-description">
+                Usamos recursos necessários para o blog funcionar. Com sua
+                autorização, também podemos usar dados analíticos para entender o
+                uso do site. Você pode mudar essa escolha quando quiser.
+                <a href="/pagina/politica-de-cookies/">Saiba mais</a>.
+            </p>
+        </div>
+
+        <div class="cookie-banner-actions" aria-label="Opções de cookies">
+            <button
+                class="cookie-button cookie-button-secondary"
+                type="button"
+                data-cookie-open-preferences
+                aria-haspopup="dialog"
+            >
+                Configurar preferências
+            </button>
+            <button
+                class="cookie-button cookie-button-primary"
+                type="button"
+                data-cookie-accept-all
+            >
+                Aceitar todos
+            </button>
+        </div>
+    </div>
+</section>
+
+<dialog
+    class="cookie-preferences"
+    data-cookie-preferences
+    aria-labelledby="cookie-preferences-title"
+    aria-describedby="cookie-preferences-description"
+>
+    <div class="cookie-preferences-shell">
+        <header class="cookie-preferences-header">
+            <div>
+                <p class="cookie-eyebrow">Privacidade</p>
+                <h2 id="cookie-preferences-title">Configurar cookies</h2>
+            </div>
+            <form method="dialog">
+                <button
+                    class="cookie-preferences-close"
+                    type="submit"
+                    aria-label="Fechar configurações de cookies"
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+            </form>
+        </header>
+
+        <div class="cookie-preferences-body">
+            <p id="cookie-preferences-description">
+                Escolha quais categorias podem ser usadas neste navegador.
+            </p>
+
+            <div class="cookie-category-list">
+                <article class="cookie-category">
+                    <div class="cookie-category-copy">
+                        <h3>Necessários</h3>
+                        <p>
+                            Mantêm o site seguro e funcional. Incluem recursos do
+                            Django e sua escolha de consentimento.
+                        </p>
+                    </div>
+                    <label class="cookie-switch">
+                        <span class="sr-only">Cookies necessários sempre ativos</span>
+                        <input type="checkbox" checked disabled>
+                        <span class="cookie-switch-control" aria-hidden="true"></span>
+                    </label>
+                </article>
+
+                <article class="cookie-category">
+                    <div class="cookie-category-copy">
+                        <h3>Analytics</h3>
+                        <p>
+                            Ajuda a entender quais páginas são acessadas e como o
+                            blog pode ser melhorado.
+                        </p>
+                    </div>
+                    <label class="cookie-switch">
+                        <span class="sr-only">Permitir cookies de Analytics</span>
+                        <input type="checkbox" name="analytics" data-cookie-analytics>
+                        <span class="cookie-switch-control" aria-hidden="true"></span>
+                    </label>
+                </article>
+
+                <article class="cookie-category">
+                    <div class="cookie-category-copy">
+                        <h3>Preferências</h3>
+                        <p>
+                            Poderão guardar escolhas de aparência, idioma e outras
+                            personalizações futuras.
+                        </p>
+                    </div>
+                    <label class="cookie-switch">
+                        <span class="sr-only">Permitir cookies de preferências</span>
+                        <input type="checkbox" name="preferences" data-cookie-preferences-toggle>
+                        <span class="cookie-switch-control" aria-hidden="true"></span>
+                    </label>
+                </article>
+            </div>
+        </div>
+
+        <footer class="cookie-preferences-actions">
+            <button
+                class="cookie-button cookie-button-ghost"
+                type="button"
+                data-cookie-reject-optional
+            >
+                Desativar opcionais
+            </button>
+            <button
+                class="cookie-button cookie-button-secondary"
+                type="button"
+                data-cookie-save-preferences
+            >
+                Salvar preferências
+            </button>
+            <button
+                class="cookie-button cookie-button-primary"
+                type="button"
+                data-cookie-accept-all
+            >
+                Aceitar todos
+            </button>
+        </footer>
+    </div>
+</dialog>

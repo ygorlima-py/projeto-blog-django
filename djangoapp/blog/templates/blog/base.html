@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -20,6 +21,12 @@
             {% include "blog/partials/_footer.html" %}
         {% endif %}
     </div>
+    {% include "blog/partials/_cookie_consent.html" %}
     {% block code_mirror_static_js %}{% endblock code_mirror_static_js %}
+    <script
+        src="{% static 'blog/javascript/cookie_consent.js' %}"
+        data-cfasync="false"
+        defer
+    ></script>
 </body>
 </html>
