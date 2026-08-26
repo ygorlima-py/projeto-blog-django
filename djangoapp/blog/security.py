@@ -12,6 +12,12 @@ RICH_TEXT_TAGS = {
 RICH_TEXT_ATTRIBUTES = {
     '*': ['class', 'style', 'title'],
     'a': ['href', 'rel', 'title'],
+    'h1': ['id'],
+    'h2': ['id'],
+    'h3': ['id'],
+    'h4': ['id'],
+    'h5': ['id'],
+    'h6': ['id'],
     'img': ['alt', 'height', 'src', 'title', 'width'],
     'td': ['colspan', 'rowspan'],
     'th': ['colspan', 'rowspan'],
