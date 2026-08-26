@@ -34,6 +34,17 @@ RICH_TEXT_CSS_SANITIZER = CSSSanitizer(
         'line-height',
         'text-align',
         'text-decoration',
+        
+        
+        # Imagens
+        'width',
+        'height',
+        'max-width',
+        'max-height',
+        'margin',
+        'margin-left',
+        'margin-right',
+        'display',
     },
 )
 

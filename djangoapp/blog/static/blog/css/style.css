@@ -965,7 +965,8 @@ a.post-label:hover {
     border-radius: var(--radius-lg);
 }
 
-.article-cover figcaption {
+.article-cover figcaption,
+.article-content figure figcaption {
     padding: var(--space-2) 0 0;
     background: transparent;
     color: var(--color-muted);
@@ -996,6 +997,20 @@ a.post-label:hover {
 .article-content table,
 .article-content figure {
     margin-block: 0 var(--space-5);
+}
+
+.article-content figure {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+}
+
+.article-content figure img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
 }
 
 .article-content h2,
