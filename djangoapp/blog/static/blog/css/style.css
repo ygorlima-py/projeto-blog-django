@@ -1118,6 +1118,13 @@ a.post-label:hover {
     max-width: 100%;
 }
 
+.article-content .travelpayouts-widget {
+    width: 100%;
+    max-width: 100%;
+    margin-block: var(--space-7);
+    overflow-x: auto;
+}
+
 .CodeMirror {
     height: auto !important;
     border-radius: var(--radius-md);
@@ -1128,6 +1135,116 @@ a.post-label:hover {
 .article-footer {
     padding-block: var(--space-6) var(--space-9);
     border-top: 1px solid var(--color-border);
+}
+
+.article-share {
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.article-share-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-bottom: var(--space-4);
+}
+
+.article-share-heading > div > p {
+    margin-bottom: var(--space-1);
+    color: var(--color-accent-dark);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.article-share-heading h2 {
+    color: var(--color-primary-deep);
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 3vw, 2.8rem);
+    line-height: 1.2;
+}
+
+.article-share-heading > p {
+    max-width: 32rem;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+    text-align: right;
+}
+
+.article-share-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.article-share-button {
+    --share-color: var(--color-primary);
+    display: inline-grid;
+    width: 4.4rem;
+    height: 4.4rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-paper);
+    color: var(--color-primary);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 180ms ease, background 180ms ease,
+        color 180ms ease, transform 180ms ease;
+}
+
+.article-share-button i {
+    font-size: 1.8rem;
+}
+
+.article-share-button:hover {
+    transform: translateY(-2px);
+    border-color: var(--share-color);
+    background: var(--share-color);
+    color: var(--color-white);
+}
+
+.article-share-button:focus-visible {
+    outline: 3px solid rgb(217 108 67 / 30%);
+    outline-offset: 3px;
+}
+
+.article-share-button-facebook {
+    --share-color: #1877f2;
+}
+
+.article-share-button-x {
+    --share-color: #111;
+}
+
+.article-share-button-linkedin {
+    --share-color: #0a66c2;
+}
+
+.article-share-button-whatsapp {
+    --share-color: #128c4a;
+}
+
+.article-share-button-instagram {
+    --share-color: #c13584;
+}
+
+.article-share-button-instagram:hover {
+    border-color: transparent;
+    background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+}
+
+.article-share-feedback {
+    min-height: 2rem;
+    margin: var(--space-2) 0 0;
+    color: var(--color-muted);
+    font-size: var(--text-xs);
 }
 
 .article-footer > p {
@@ -1894,6 +2011,22 @@ a.post-label:hover {
     .article-content blockquote {
         padding: var(--space-4) var(--space-5);
         font-size: 2.1rem;
+    }
+
+    .article-share-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+
+    .article-share-heading > p {
+        max-width: none;
+        text-align: left;
+    }
+
+    .article-share-button {
+        width: 4.2rem;
+        height: 4.2rem;
     }
 
     .pagination {

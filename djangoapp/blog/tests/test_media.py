@@ -84,4 +84,4 @@ class MediaUploadTests(TestCase):
         response = self.client.get(post.get_absolute_url())
 
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, f'Capa do artigo {post.title}')
+        self.assertNotContains(response, '<figure class="article-cover')

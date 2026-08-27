@@ -4,6 +4,11 @@ from django.test import TestCase
 from django.urls import reverse
 
 from blog.models import Page, Post
+from blog.security import (
+    TRAVELPAYOUTS_WIDGET_ATTRIBUTE,
+    is_allowed_travelpayouts_widget_url,
+    sanitize_rich_text,
+)
 
 
 class RichTextSanitizationTests(TestCase):
@@ -60,6 +65,70 @@ class RichTextSanitizationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<p>Legado</p>', html=True)
         self.assertNotContains(response, '<script>alert("xss")</script>')
+
+    def test_valid_travelpayouts_widget_marker_survives_sanitization(self):
+        widget_url = (
+            'https://tpemd.com/content?currency=usd&campaign_id=111'
+            '&future_parameter=kept'
+        )
+        content = (
+            '<div class="travelpayouts-widget" '
+            f'{TRAVELPAYOUTS_WIDGET_ATTRIBUTE}="'
+            f'{widget_url.replace("&", "&amp;")}"></div>'
+        )
+
+        post = Post.objects.create(
+            title='Post com widget',
+            slug='post-com-widget',
+            excerpt='Resumo seguro.',
+            content=content,
+            is_published=True,
+        )
+        response = self.client.get(post.get_absolute_url())
+
+        self.assertIn('class="travelpayouts-widget"', post.content)
+        self.assertIn(
+            f'{TRAVELPAYOUTS_WIDGET_ATTRIBUTE}="'
+            'https://tpemd.com/content?currency=usd&amp;campaign_id=111'
+            '&amp;future_parameter=kept"',
+            post.content,
+        )
+        self.assertContains(response, 'future_parameter=kept')
+
+    def test_travelpayouts_widget_url_validation_rejects_bypasses(self):
+        invalid_urls = (
+            'http://tpemd.com/content?campaign_id=111',
+            'https://evil-tpemd.com/content?campaign_id=111',
+            'https://tpemd.com.evil.example/content?campaign_id=111',
+            'https://tpemd.com@evil.example/content?campaign_id=111',
+            'https://user:password@tpemd.com/content?campaign_id=111',
+            'https://tpemd.com:8443/content?campaign_id=111',
+            'https://tpemd.com/other-path?campaign_id=111',
+            'https://tpemd.com/content?campaign_id=111#fragment',
+            'https:\\tpemd.com/content?campaign_id=111',
+            ' https://tpemd.com/content?campaign_id=111',
+            'javascript:alert(1)',
+        )
+
+        for widget_url in invalid_urls:
+            with self.subTest(widget_url=widget_url):
+                self.assertFalse(
+                    is_allowed_travelpayouts_widget_url(widget_url),
+                )
+
+                sanitized = sanitize_rich_text(
+                    '<div class="travelpayouts-widget" '
+                    f'{TRAVELPAYOUTS_WIDGET_ATTRIBUTE}="{widget_url}"></div>',
+                )
+                self.assertNotIn(TRAVELPAYOUTS_WIDGET_ATTRIBUTE, sanitized)
+
+    def test_travelpayouts_widget_url_accepts_arbitrary_query_parameters(self):
+        widget_url = (
+            'https://tpemd.com/content?campaign_id=999&promo_id=4563'
+            '&from_name=GRU&to_name=bangkok_th&new_option=value%2Ffuture'
+        )
+
+        self.assertTrue(is_allowed_travelpayouts_widget_url(widget_url))
 
 
 class SummernoteUploadSecurityTests(TestCase):

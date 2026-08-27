@@ -23,6 +23,7 @@
     </div>
     {% include "blog/partials/_cookie_consent.html" %}
     {% block code_mirror_static_js %}{% endblock code_mirror_static_js %}
+    {% block additional_scripts %}{% endblock additional_scripts %}
     <script
         src="{% static 'blog/javascript/cookie_consent.js' %}"
         data-cfasync="false"

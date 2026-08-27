@@ -1,0 +1,79 @@
+{% with share_url=request.build_absolute_uri %}
+    <aside
+        class="article-share section-content-article"
+        aria-labelledby="article-share-title"
+        data-share-bar
+        data-share-url="{{ share_url }}"
+        data-share-title="{{ post.title }}"
+    >
+        <div class="article-share-heading">
+            <div>
+                <p>Compartilhe</p>
+                <h2 id="article-share-title">Envie este artigo para os seus amigos</h2>
+            </div>
+        </div>
+
+        <div class="article-share-buttons" aria-label="Compartilhar artigo nas redes sociais">
+            <a
+                class="article-share-button article-share-button-facebook"
+                href="https://www.facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                aria-label="Compartilhar no Facebook"
+                title="Compartilhar no Facebook"
+            >
+                <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
+            </a>
+            <a
+                class="article-share-button article-share-button-x"
+                href="https://twitter.com/intent/tweet?url={{ share_url|urlencode }}&amp;text={{ post.title|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                aria-label="Compartilhar no X"
+                title="Compartilhar no X"
+            >
+                <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
+            </a>
+            <a
+                class="article-share-button article-share-button-linkedin"
+                href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                aria-label="Compartilhar no LinkedIn"
+                title="Compartilhar no LinkedIn"
+            >
+                <i class="fa-brands fa-linkedin-in" aria-hidden="true"></i>
+            </a>
+            <a
+                class="article-share-button article-share-button-whatsapp"
+                href="https://wa.me/?text={{ post.title|urlencode }}%20{{ share_url|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                aria-label="Compartilhar no WhatsApp"
+                title="Compartilhar no WhatsApp"
+            >
+                <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+            </a>
+            <button
+                class="article-share-button article-share-button-instagram"
+                type="button"
+                data-native-share
+                aria-label="Compartilhar pelo Instagram ou outro aplicativo"
+                title="Compartilhar pelo Instagram ou outro aplicativo"
+            >
+                <i class="fa-brands fa-instagram" aria-hidden="true"></i>
+            </button>
+            <button
+                class="article-share-button article-share-button-copy"
+                type="button"
+                data-copy-share-link
+                aria-label="Copiar link do artigo"
+                title="Copiar link do artigo"
+            >
+                <i class="fa-solid fa-link" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <p class="article-share-feedback" data-share-feedback role="status" aria-live="polite"></p>
+    </aside>
+{% endwith %}

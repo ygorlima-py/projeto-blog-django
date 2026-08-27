@@ -67,6 +67,36 @@ class PublicBlogViewsTests(TestCase):
         self.assertContains(published_response, published_post.title)
         self.assertEqual(draft_response.status_code, 404)
 
+    def test_post_detail_has_social_sharing_links_and_metadata(self):
+        post = self.create_post(
+            title='Guia para compartilhar',
+            slug='guia-para-compartilhar',
+        )
+
+        response = self.client.get(post.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-share-bar')
+        self.assertContains(response, 'data-share-url="http://testserver')
+        self.assertContains(response, 'facebook.com/sharer/sharer.php')
+        self.assertContains(response, 'twitter.com/intent/tweet')
+        self.assertContains(response, 'linkedin.com/sharing/share-offsite')
+        self.assertContains(response, 'wa.me/')
+        self.assertContains(response, 'fa-brands fa-instagram')
+        self.assertContains(response, 'property="og:type" content="article"')
+        self.assertContains(response, f'property="og:title" content="{post.title}"')
+
+    def test_post_detail_loads_travelpayouts_widget_loader(self):
+        post = self.create_post()
+
+        response = self.client.get(post.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '/static/blog/javascript/travelpayouts_widgets.js',
+        )
+
     def test_page_detail_is_available_only_when_published(self):
         published_page = Page.objects.create(
             title='Sobre mim',
