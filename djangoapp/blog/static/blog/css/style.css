@@ -1285,6 +1285,37 @@ a.post-label:hover {
     padding-bottom: 0;
 }
 
+.booking-page > .booking-page-content {
+    width: calc(100% - 4rem);
+    margin-inline: auto;
+    padding-block: var(--space-6) var(--space-8);
+}
+
+.booking-page .static-page-header {
+    width: min(100%, var(--content-wide));
+    margin-inline: auto;
+    margin-bottom: var(--space-5);
+}
+
+.booking-page .booking-widget-content {
+    width: 100%;
+    padding: 0;
+}
+
+.booking-page .travelpayouts-widget {
+    width: 100%;
+    max-width: none;
+    min-height: calc(100vh - var(--header-height) - 18rem);
+    margin: 0;
+    overflow: visible;
+}
+
+.booking-page .travelpayouts-widget iframe {
+    display: block;
+    width: 100% !important;
+    min-height: calc(100vh - var(--header-height) - 18rem);
+}
+
 /* Pagination */
 .pagination {
     display: grid;
