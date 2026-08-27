@@ -1,14 +1,31 @@
 {% extends "blog/base.html" %}
-{% load rich_text %}
+{% load rich_text static %}
 {% block content %}
-    <main id="main-content" class="main-content static-page">
-        <article class="section-content-article">
-            <header class="static-page-header">
-                <p>Página</p>
-                <h1>{{ page.title }}</h1>
-                <span aria-hidden="true"></span>
-            </header>
-            <div class="article-content page-content">{{ page.content|rich_text }}</div>
+    <main
+        id="main-content"
+        class="main-content static-page{% if page.slug == 'passagens-aereas' %} booking-page{% endif %}"
+    >
+        <article class="{% if page.slug == 'passagens-aereas' %}booking-page-content{% else %}section-content-article{% endif %}">
+            {% if page.slug != 'passagens-aereas' %}
+                <header class="static-page-header">
+                    <p>Página</p>
+                    <h1>{{ page.title }}</h1>
+                    <span aria-hidden="true"></span>
+                </header>
+            {% endif %}
+            <div class="article-content page-content{% if page.slug == 'passagens-aereas' %} booking-widget-content{% endif %}">
+                {{ page.content|rich_text }}
+            </div>
         </article>
     </main>
 {% endblock content %}
+
+{% block additional_scripts %}
+    {% if page.slug == 'passagens-aereas' %}
+        <script
+            src="{% static 'blog/javascript/travelpayouts_widgets.js' %}"
+            data-cfasync="false"
+            defer
+        ></script>
+    {% endif %}
+{% endblock additional_scripts %}

@@ -117,6 +117,11 @@ class PublicBlogViewsTests(TestCase):
         self.assertEqual(published_response.status_code, 200)
         self.assertTemplateUsed(published_response, 'blog/pages/page.html')
         self.assertContains(published_response, published_page.title)
+        self.assertNotContains(published_response, 'booking-page-content')
+        self.assertNotContains(
+            published_response,
+            '/static/blog/javascript/travelpayouts_widgets.js',
+        )
         self.assertEqual(draft_response.status_code, 404)
 
         legacy_response = self.client.get(f'/page/{published_page.slug}/')
@@ -125,6 +130,35 @@ class PublicBlogViewsTests(TestCase):
             published_page.get_absolute_url(),
             status_code=301,
             target_status_code=200,
+        )
+
+    def test_flight_booking_page_uses_full_width_widget_layout(self):
+        widget_url = (
+            'https://tpemd.com/content?currency=usd&campaign_id=111'
+            '&promo_id=4484'
+        )
+        page = Page.objects.create(
+            title='Passagens aéreas',
+            slug='passagens-aereas',
+            content=(
+                '<div class="travelpayouts-widget" '
+                'data-travelpayouts-src="'
+                f'{widget_url.replace("&", "&amp;")}"></div>'
+            ),
+            is_published=True,
+        )
+
+        response = self.client.get(page.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="main-content static-page booking-page"')
+        self.assertContains(response, 'class="booking-page-content"')
+        self.assertContains(response, 'booking-widget-content')
+        self.assertNotContains(response, 'class="static-page-header"')
+        self.assertContains(response, 'data-travelpayouts-src=')
+        self.assertContains(
+            response,
+            '/static/blog/javascript/travelpayouts_widgets.js',
         )
 
     def test_category_and_tag_pages_hide_unpublished_posts(self):
