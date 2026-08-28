@@ -1,0 +1,104 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+<main id="main-content" class="main-content affiliates-page">
+    <section class="affiliates-section section-content-wide" aria-labelledby="affiliates-title">
+        <header class="section-heading affiliates-heading">
+            <p>Empresas e serviços</p>
+            <h1 id="affiliates-title">Parceiros</h1>
+            <span aria-hidden="true"></span>
+        </header>
+
+        <p class="affiliates-disclosure">
+            Esta página reúne empresas e serviços divulgados por meio de programas de afiliados.
+            O Ásia de Perto pode receber uma comissão quando você realiza uma compra ou reserva
+            por estes links, sem custo adicional para você.
+        </p>
+
+        <nav class="affiliate-filters category-navigation" aria-label="Categorias de parceiros">
+            <ul class="category-navigation-list affiliate-filter-list">
+                <li>
+                    <a
+                        href="{% url 'affiliates:list' %}"
+                        {% if not active_category %}aria-current="page"{% endif %}
+                    >Todos</a>
+                </li>
+                {% for category in categories %}
+                    <li>
+                        <a
+                            href="{% url 'affiliates:category' category.slug %}"
+                            {% if active_category == category %}aria-current="page"{% endif %}
+                        >
+                            {% if category.icon %}
+                                <img
+                                    class="affiliate-filter-icon"
+                                    src="{{ category.icon.url }}"
+                                    alt=""
+                                    aria-hidden="true"
+                                >
+                            {% endif %}
+                            {{ category.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+
+        {% if partners %}
+            <div class="affiliate-grid">
+                {% for partner in partners %}
+                    <article class="affiliate-card">
+                        <div class="affiliate-card-media">
+                            {% if partner.image %}
+                                <img
+                                    src="{{ partner.image.url }}"
+                                    alt="{{ partner.image_alt }}"
+                                    loading="lazy"
+                                >
+                            {% else %}
+                                <span class="affiliate-card-placeholder" aria-hidden="true">✦</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="affiliate-card-body">
+                            <a
+                                class="affiliate-card-category"
+                                href="{% url 'affiliates:category' partner.category.slug %}"
+                            >
+                                {{ partner.category.name }}
+                            </a>
+
+                            <h2 class="affiliate-card-title">{{ partner.name }}</h2>
+                            <p class="affiliate-card-description">{{ partner.description }}</p>
+
+                            <a
+                                class="affiliate-card-action"
+                                href="{{ partner.affiliate_url }}"
+                                target="_blank"
+                                rel="sponsored noopener noreferrer"
+                            >
+                                {{ partner.button_label }}
+                                <span aria-hidden="true">↗</span>
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state affiliate-empty-state">
+                <span class="empty-state-icon" aria-hidden="true">✦</span>
+                <h2>Nenhum parceiro encontrado</h2>
+                {% if active_category %}
+                    <p>Ainda não há parceiros publicados nesta categoria.</p>
+                    <a class="text-link" href="{% url 'affiliates:list' %}">
+                        Ver todos os parceiros
+                        <span aria-hidden="true">→</span>
+                    </a>
+                {% else %}
+                    <p>Novos parceiros serão publicados por aqui em breve.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+</main>
+{% endblock content %}
