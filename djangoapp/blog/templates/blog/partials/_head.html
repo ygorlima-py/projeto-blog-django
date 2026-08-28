@@ -2,7 +2,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#123d3a">
-{% if post and post.excerpt %}
+{% if page and page.slug == 'passagens-aereas' %}
+    <meta name="description" content="Pesquise e compare voos para a Tailândia e destinos no mundo todo.">
+{% elif post and post.excerpt %}
     <meta name="description" content="{{ post.excerpt|truncatechars:160 }}">
 {% elif site_setup.description %}
     <meta name="description" content="{{ site_setup.description }}">
