@@ -89,7 +89,7 @@ def validate_svg(uploaded_file):
     """Aceita SVGs simples e rejeita conteúdo ativo ou referências externas."""
     filename = getattr(uploaded_file, 'name', '')
     if Path(filename).suffix.lower() != '.svg':
-        raise ValidationError('O ícone do cabeçalho precisa ser um arquivo SVG.')
+        raise ValidationError('O ícone precisa ser um arquivo SVG.')
 
     current_position = uploaded_file.tell()
     uploaded_file.seek(0)
