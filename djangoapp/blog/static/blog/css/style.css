@@ -1310,7 +1310,8 @@ a.post-label:hover {
 }
 
 .booking-page-title {
-    flex: 0 0 auto;
+    width: 100%;
+    flex: 1 1 auto;
 }
 
 .booking-page-intro h1 {
@@ -1328,13 +1329,13 @@ a.post-label:hover {
     background: var(--color-accent);
 }
 
-.booking-page-intro p {
-    max-width: 58rem;
-    margin: 0;
+.booking-page-intro .booking-page-disclosure {
+    max-width: 100rem;
+    margin: var(--space-3) 0 0;
     color: var(--color-muted);
-    font-size: var(--text-sm);
-    line-height: 1.5;
-    text-align: right;
+    font-size: var(--text-xs);
+    line-height: 1.6;
+    text-align: left;
 }
 
 .booking-page .booking-widget-content {
@@ -1374,9 +1375,6 @@ a.post-label:hover {
         white-space: normal;
     }
 
-    .booking-page-intro p {
-        text-align: left;
-    }
 }
 
 /* Pagination */
