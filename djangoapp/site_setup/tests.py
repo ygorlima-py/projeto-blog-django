@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 
-from site_setup.models import MenuLink, SiteSetup, SocialLink
+from site_setup.models import FooterSection, MenuLink, SiteSetup, SocialLink
 
 
 class SocialLinkTests(TestCase):
@@ -63,6 +63,99 @@ class DynamicSiteIdentityTests(TestCase):
 
 
 class DynamicMenuTests(TestCase):
+    def test_footer_groups_and_links_follow_configured_order(self):
+        site_setup = SiteSetup.objects.create(
+            title='Rota Asiática',
+            description='Vida e viagens pela Tailândia.',
+        )
+        second_section = FooterSection.objects.create(
+            site_setup=site_setup,
+            title='Guias',
+            order=20,
+        )
+        first_section = FooterSection.objects.create(
+            site_setup=site_setup,
+            title='Planeje sua viagem',
+            order=10,
+        )
+        MenuLink.objects.create(
+            site_setup=site_setup,
+            footer_section=first_section,
+            text='Hotéis',
+            url_or_path='/hoteis/',
+            placement=MenuLink.Placement.FOOTER,
+            order=20,
+        )
+        MenuLink.objects.create(
+            site_setup=site_setup,
+            footer_section=first_section,
+            text='Passagens aéreas',
+            url_or_path='/pagina/passagens-aereas/',
+            placement=MenuLink.Placement.FOOTER,
+            order=10,
+        )
+        MenuLink.objects.create(
+            site_setup=site_setup,
+            footer_section=second_section,
+            text='Roteiros',
+            url_or_path='/roteiros/',
+            placement=MenuLink.Placement.FOOTER,
+            order=10,
+        )
+
+        response = self.client.get(reverse('blog:index'))
+        content = response.content.decode()
+
+        self.assertLess(
+            content.find('Planeje sua viagem'),
+            content.find('Passagens aéreas'),
+        )
+        self.assertLess(content.find('Passagens aéreas'), content.find('Hotéis'))
+        self.assertLess(content.find('Hotéis'), content.find('Guias'))
+        self.assertLess(content.find('Guias'), content.find('Roteiros'))
+        self.assertNotContains(response, '>Explore<')
+
+    def test_uncategorized_footer_links_remain_in_explore(self):
+        site_setup = SiteSetup.objects.create(
+            title='Rota Asiática',
+            description='Vida e viagens pela Tailândia.',
+        )
+        menu_link = MenuLink.objects.create(
+            site_setup=site_setup,
+            text='Sobre',
+            url_or_path='/pagina/sobre/',
+            placement=MenuLink.Placement.FOOTER,
+        )
+
+        response = self.client.get(reverse('blog:index'))
+
+        self.assertContains(response, '>Explore<')
+        self.assertContains(response, menu_link.text)
+
+    def test_menu_links_follow_configured_order_in_header_and_footer(self):
+        site_setup = SiteSetup.objects.create(
+            title='Rota Asiática',
+            description='Vida e viagens pela Tailândia.',
+        )
+        MenuLink.objects.create(
+            site_setup=site_setup,
+            text='Segundo link',
+            url_or_path='/segundo/',
+            order=20,
+        )
+        MenuLink.objects.create(
+            site_setup=site_setup,
+            text='Primeiro link',
+            url_or_path='/primeiro/',
+            order=10,
+        )
+
+        response = self.client.get(reverse('blog:index'))
+        content = response.content.decode()
+
+        self.assertLess(content.find('Primeiro link'), content.find('Segundo link'))
+        self.assertLess(content.rfind('Primeiro link'), content.rfind('Segundo link'))
+
     def test_menu_link_created_in_admin_is_rendered_in_header_and_footer(self):
         site_setup = SiteSetup.objects.create(
             title='Rota Asiática',

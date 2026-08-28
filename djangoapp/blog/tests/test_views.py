@@ -160,7 +160,7 @@ class PublicBlogViewsTests(TestCase):
         self.assertContains(
             response,
             'Pesquise e compare voos para a Tailândia e destinos no mundo todo.',
-            count=2,
+            count=1,
         )
         self.assertContains(
             response,
