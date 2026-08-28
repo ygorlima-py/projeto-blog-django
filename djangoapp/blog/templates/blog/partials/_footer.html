@@ -22,21 +22,45 @@
         </div>
 
         {% if site_setup.show_menu %}
-            <nav class="footer-navigation" aria-label="Navegação do rodapé">
-                <p>Explore</p>
-                <ul>
-                    {% for link in site_setup.menu.all %}
-                        {% if link.show_in_footer %}
-                            <li>
-                                <a
-                                    href="{{ link.url_or_path }}"
-                                    {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
-                                >{{ link.text }}</a>
-                            </li>
+            {% if footer_sections or uncategorized_footer_links %}
+                <nav class="footer-navigation" aria-label="Navegação do rodapé">
+                    <div class="footer-navigation-grid">
+                        {% for section in footer_sections %}
+                            {% if section.footer_links %}
+                                <div class="footer-navigation-group">
+                                    <p>{{ section.title }}</p>
+                                    <ul>
+                                        {% for link in section.footer_links %}
+                                            <li>
+                                                <a
+                                                    href="{{ link.url_or_path }}"
+                                                    {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                                >{{ link.text }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if uncategorized_footer_links %}
+                            <div class="footer-navigation-group">
+                                <p>Explore</p>
+                                <ul>
+                                    {% for link in uncategorized_footer_links %}
+                                        <li>
+                                            <a
+                                                href="{{ link.url_or_path }}"
+                                                {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                            >{{ link.text }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         {% endif %}
-                    {% endfor %}
-                </ul>
-            </nav>
+                    </div>
+                </nav>
+            {% endif %}
         {% endif %}
 
         {% if site_setup.social_links.exists %}

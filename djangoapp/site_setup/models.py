@@ -1,11 +1,43 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+
 from utils.model_validators import validate_png
 from utils.images import resize_image
 from site_setup.validators import validate_menu_url
 
+
+class FooterSection(models.Model):
+    site_setup = models.ForeignKey(
+        'SiteSetup',
+        on_delete=models.CASCADE,
+        related_name='footer_sections',
+    )
+    title = models.CharField('Título', max_length=50)
+    order = models.PositiveSmallIntegerField(
+        'Ordem',
+        default=0,
+        help_text='Números menores aparecem primeiro.',
+    )
+
+    class Meta:
+        ordering = ('order', 'pk')
+        verbose_name = 'Categoria do rodapé'
+        verbose_name_plural = 'Categorias do rodapé'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('site_setup', 'title'),
+                name='unique_footer_section_title_per_site',
+            ),
+        )
+
+    def __str__(self):
+        return self.title
+
+
 # Create your models here.
 class MenuLink(models.Model):
     class Meta:
+        ordering = ('order', 'pk')
         verbose_name = 'Menu Link'
         verbose_name_plural = 'Menu Links'
 
@@ -23,6 +55,20 @@ class MenuLink(models.Model):
         choices=Placement.choices,
         default=Placement.BOTH,
     )
+    order = models.PositiveSmallIntegerField(
+        'Ordem',
+        default=0,
+        help_text='Números menores aparecem primeiro.',
+    )
+    footer_section = models.ForeignKey(
+        FooterSection,
+        on_delete=models.SET_NULL,
+        related_name='links',
+        blank=True,
+        null=True,
+        verbose_name='Categoria do rodapé',
+        help_text='Opcional. Links sem categoria aparecem em Explore.',
+    )
     site_setup = models.ForeignKey(
         'SiteSetup', on_delete=models.CASCADE,
         blank=True, null=True, default=None,
@@ -36,6 +82,17 @@ class MenuLink(models.Model):
     @property
     def show_in_footer(self):
         return self.placement in {self.Placement.BOTH, self.Placement.FOOTER}
+
+    def clean(self):
+        super().clean()
+        if (
+            self.footer_section_id
+            and self.site_setup_id
+            and self.footer_section.site_setup_id != self.site_setup_id
+        ):
+            raise ValidationError({
+                'footer_section': 'Escolha uma categoria deste mesmo Setup.',
+            })
 
     def __str__(self):
         return self.text

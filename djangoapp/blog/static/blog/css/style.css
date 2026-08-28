@@ -1423,7 +1423,7 @@ a.post-label:hover {
 
 .site-footer-content {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(14rem, 0.8fr) minmax(14rem, 0.8fr);
+    grid-template-columns: minmax(22rem, 1.1fr) minmax(32rem, 1.4fr) minmax(16rem, 0.7fr);
     gap: var(--space-8);
     padding-block: var(--space-8);
 }
@@ -1440,7 +1440,7 @@ a.post-label:hover {
     font-size: var(--text-sm);
 }
 
-.footer-navigation > p,
+.footer-navigation-group > p,
 .footer-social > p {
     margin-bottom: var(--space-4);
     color: var(--color-sand);
@@ -1450,23 +1450,37 @@ a.post-label:hover {
     text-transform: uppercase;
 }
 
-.footer-navigation ul,
+.footer-navigation-group ul,
 .footer-social ul {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.footer-navigation li + li {
+.footer-navigation {
+    min-width: 0;
+}
+
+.footer-navigation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-7);
+}
+
+.footer-navigation-group {
+    min-width: 0;
+}
+
+.footer-navigation-group li + li {
     margin-top: var(--space-2);
 }
 
-.footer-navigation a {
+.footer-navigation-group a {
     color: rgb(247 243 234 / 76%);
     font-size: var(--text-sm);
 }
 
-.footer-navigation a:hover {
+.footer-navigation-group a:hover {
     color: var(--color-white);
     text-decoration: underline;
     text-underline-offset: 0.3em;
@@ -2127,6 +2141,10 @@ a.post-label:hover {
     .site-footer-content {
         grid-template-columns: 1fr;
         gap: var(--space-7);
+    }
+
+    .footer-navigation-grid {
+        grid-template-columns: 1fr;
     }
 
     .site-footer-brand {
