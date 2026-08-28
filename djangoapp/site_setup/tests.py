@@ -1,8 +1,83 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from site_setup.models import FooterSection, MenuLink, SiteSetup, SocialLink
+
+
+class MenuHeaderIconTests(TestCase):
+    valid_svg = (
+        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">'
+        b'<path fill="currentColor" d="M2 12h20"/></svg>'
+    )
+
+    def setUp(self):
+        self.site_setup = SiteSetup.objects.create(
+            title='Rota Asiática',
+            description='Vida e viagens pela Tailândia.',
+        )
+
+    def make_menu_link(self, filename, content):
+        return MenuLink(
+            site_setup=self.site_setup,
+            text='Passagens',
+            url_or_path='/pagina/passagens-aereas/',
+            header_icon=SimpleUploadedFile(
+                filename,
+                content,
+                content_type='image/svg+xml',
+            ),
+        )
+
+    def test_safe_svg_is_accepted(self):
+        menu_link = self.make_menu_link('plane.svg', self.valid_svg)
+
+        menu_link.full_clean()
+
+    def test_unsafe_or_non_svg_file_is_rejected(self):
+        invalid_files = (
+            (
+                'script.svg',
+                b'<svg xmlns="http://www.w3.org/2000/svg">'
+                b'<script>alert(1)</script></svg>',
+            ),
+            (
+                'event.svg',
+                b'<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)">'
+                b'<path d="M0 0h1v1z"/></svg>',
+            ),
+            (
+                'external-reference.svg',
+                b'<svg xmlns="http://www.w3.org/2000/svg">'
+                b'<image href="https://example.com/tracker.png"/></svg>',
+            ),
+            ('plane.png', self.valid_svg),
+        )
+
+        for filename, content in invalid_files:
+            with self.subTest(filename=filename):
+                menu_link = self.make_menu_link(filename, content)
+                with self.assertRaises(ValidationError):
+                    menu_link.full_clean()
+
+    def test_svg_icon_is_rendered_only_in_header(self):
+        menu_link = MenuLink.objects.create(
+            site_setup=self.site_setup,
+            text='Passagens',
+            url_or_path='/pagina/passagens-aereas/',
+            header_icon='assets/header-icons/2026/08/plane.svg',
+        )
+
+        response = self.client.get(reverse('blog:index'))
+
+        self.assertContains(response, menu_link.text, count=2)
+        self.assertContains(response, 'class="primary-navigation-icon"', count=1)
+        self.assertContains(
+            response,
+            'src="/media/assets/header-icons/2026/08/plane.svg"',
+            count=1,
+        )
 
 
 class SocialLinkTests(TestCase):

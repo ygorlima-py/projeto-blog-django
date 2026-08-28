@@ -21,6 +21,7 @@ class MenuLinkInline(admin.TabularInline):
         'url_or_path',
         'new_tab',
         'placement',
+        'header_icon',
         'footer_section',
         'order',
     )

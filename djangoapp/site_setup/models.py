@@ -3,7 +3,7 @@ from django.db import models
 
 from utils.model_validators import validate_png
 from utils.images import resize_image
-from site_setup.validators import validate_menu_url
+from site_setup.validators import validate_menu_url, validate_svg
 
 
 class FooterSection(models.Model):
@@ -68,6 +68,13 @@ class MenuLink(models.Model):
         null=True,
         verbose_name='Categoria do rodapé',
         help_text='Opcional. Links sem categoria aparecem em Explore.',
+    )
+    header_icon = models.FileField(
+        'Ícone do cabeçalho',
+        upload_to='assets/header-icons/%Y/%m/',
+        blank=True,
+        validators=[validate_svg],
+        help_text='Opcional. Envie um SVG seguro de até 256 KB.',
     )
     site_setup = models.ForeignKey(
         'SiteSetup', on_delete=models.CASCADE,

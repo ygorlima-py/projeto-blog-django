@@ -27,7 +27,17 @@
                                         href="{{ link.url_or_path }}"
                                         {% if request.path == link.url_or_path %}aria-current="page"{% endif %}
                                         {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
-                                    >{{ link.text }}</a>
+                                    >
+                                        {% if link.header_icon %}
+                                            <img
+                                                class="primary-navigation-icon"
+                                                src="{{ link.header_icon.url }}"
+                                                alt=""
+                                                aria-hidden="true"
+                                            >
+                                        {% endif %}
+                                        <span>{{ link.text }}</span>
+                                    </a>
                                 </li>
                             {% endif %}
                         {% endfor %}
