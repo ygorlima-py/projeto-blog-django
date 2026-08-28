@@ -153,6 +153,21 @@ class PublicBlogViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="main-content static-page booking-page"')
         self.assertContains(response, 'class="booking-page-content"')
+        self.assertContains(response, 'class="booking-page-intro"')
+        self.assertContains(response, 'class="booking-page-title"')
+        self.assertContains(response, '<h1>Passagens aéreas</h1>', html=True)
+        self.assertContains(response, '<span aria-hidden="true"></span>', html=True)
+        self.assertContains(
+            response,
+            'Pesquise e compare voos para a Tailândia e destinos no mundo todo.',
+            count=2,
+        )
+        self.assertContains(
+            response,
+            '<meta name="description" content="Pesquise e compare voos para a '
+            'Tailândia e destinos no mundo todo.">',
+            html=True,
+        )
         self.assertContains(response, 'booking-widget-content')
         self.assertNotContains(response, 'class="static-page-header"')
         self.assertContains(response, 'data-travelpayouts-src=')
