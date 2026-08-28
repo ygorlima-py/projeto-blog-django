@@ -273,12 +273,21 @@ summary:focus-visible {
 
 .primary-navigation-list a {
     position: relative;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
     padding-block: 1rem;
     color: var(--color-ink);
     font-size: var(--text-sm);
     font-weight: 600;
     white-space: nowrap;
+}
+
+.primary-navigation-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    flex: 0 0 1.8rem;
+    object-fit: contain;
 }
 
 .primary-navigation-list a::after {
