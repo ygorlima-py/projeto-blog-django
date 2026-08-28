@@ -157,6 +157,17 @@ class PublicBlogViewsTests(TestCase):
         self.assertContains(response, 'class="booking-page-title"')
         self.assertContains(response, '<h1>Passagens aéreas</h1>', html=True)
         self.assertContains(response, '<span aria-hidden="true"></span>', html=True)
+        self.assertContains(response, 'class="booking-page-disclosure"')
+        self.assertContains(
+            response,
+            'As pesquisas e reservas são realizadas por parceiros externos.',
+        )
+        self.assertContains(
+            response,
+            'Emissão, pagamento, alterações, cancelamentos e suporte são de '
+            'responsabilidade da',
+        )
+        self.assertContains(response, 'empresa onde a compra for concluída.')
         self.assertContains(
             response,
             'Pesquise e compare voos para a Tailândia e destinos no mundo todo.',
