@@ -8,6 +8,7 @@ collectstatic.sh
 migrate.sh
 
 if [ "${DJANGO_ENV:-development}" = "production" ]; then
+    python manage.py check --deploy
     run_production.sh
 else
     runserver.sh

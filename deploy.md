@@ -308,8 +308,10 @@ Adicione também estes **Actions variables**:
 | `DEPLOY_ENABLED` | `true` somente depois do primeiro deploy manual funcionar |
 
 Após um PR passar pela CI e for mesclado na `main`, o workflow conecta por SSH,
-faz checkout exatamente do commit aprovado pela CI, reconstrói os contêineres e executa
-`check --deploy`. Se o deploy falhar, o workflow ficará vermelho e o site
+faz checkout exatamente do commit aprovado pela CI, reconstrói os contêineres e
+aguarda o Gunicorn aceitar conexões. O `check --deploy` é executado pelo próprio
+contêiner antes de iniciar o Gunicorn, sem criar outro processo Django em paralelo.
+Se o deploy falhar, o workflow ficará vermelho e o site
 anterior normalmente continua em execução.
 
 ## 10. Deploy manual, atualização e rollback

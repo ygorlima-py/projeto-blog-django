@@ -57,4 +57,5 @@ jobs:
              git rev-parse --verify '$DEPLOY_SHA^{commit}' && \
              docker compose config -q && \
              docker compose up --build -d --remove-orphans && \
-             docker compose exec -T djangoapp python manage.py check --deploy"
+             timeout 120 sh -c 'until docker compose exec -T djangoapp nc -z 127.0.0.1 8000 >/dev/null 2>&1; do sleep 2; done' || \
+             { docker compose ps; docker compose logs --tail=100 djangoapp; exit 1; }"

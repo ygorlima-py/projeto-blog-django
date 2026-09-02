@@ -15,6 +15,7 @@ ENV PYTHONUNBUFFERED 1
 # Mantém o ambiente virtual fora do código montado como volume pelo
 # Docker Compose durante o desenvolvimento.
 ENV UV_PROJECT_ENVIRONMENT=/venv
+ENV UV_PROJECT=/app
 ENV UV_LINK_MODE=copy
 ENV PATH="/scripts:/venv/bin:$PATH"
 
@@ -50,11 +51,11 @@ RUN uv sync --locked --no-dev --no-install-project --no-cache && \
 # `uv run` tentem criar um cache em /home/duser.
 ENV UV_NO_CACHE=1
 
-# Copia o código Django depois da instalação das dependências.
-COPY djangoapp /app/djangoapp
+# Copia o código Django no caminho esperado pelas configurações existentes.
+COPY djangoapp /djangoapp
 
 # Os scripts da aplicação executam o manage.py a partir desta pasta.
-WORKDIR /app/djangoapp
+WORKDIR /djangoapp
 
 # Muda o usuário para duser
 USER duser
