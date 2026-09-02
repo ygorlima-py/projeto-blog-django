@@ -1,0 +1,22 @@
+[project]
+name = "asia-de-perto"
+version = "0.1.0"
+description = "Blog Asia de Perto"
+requires-python = ">=3.11"
+dependencies = [
+    "asgiref==3.10.0",
+    "bleach[css]>=6.2,<7",
+    "django>=5.2.7,<5.3",
+    "django-axes>=8.0.0,<8.1.0",
+    "django-summernote>=0.8.20.0,<0.8.20.1",
+    "gunicorn>=23,<24",
+    "pillow>=12.0.0,<12.1.0",
+    "psycopg2-binary>=2.9.11,<2.10",
+    "python-dotenv>=1.2.1,<1.3.0",
+    "sqlparse==0.5.3",
+    "tzdata==2025.2",
+    "webencodings==0.5.1",
+]
+
+[tool.uv]
+package = false
