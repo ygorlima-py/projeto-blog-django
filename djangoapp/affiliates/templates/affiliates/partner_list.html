@@ -27,7 +27,9 @@
                     <li>
                         <a
                             href="{% url 'affiliates:category' category.slug %}"
-                            {% if active_category == category %}aria-current="page"{% endif %}
+                            {% if active_category == category %}
+                            aria-current="page"
+                            {% endif %}
                         >
                             {% if category.icon %}
                                 <img
