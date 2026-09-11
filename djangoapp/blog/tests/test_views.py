@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -85,6 +87,48 @@ class PublicBlogViewsTests(TestCase):
         self.assertContains(response, 'fa-brands fa-instagram')
         self.assertContains(response, 'property="og:type" content="article"')
         self.assertContains(response, f'property="og:title" content="{post.title}"')
+
+    def test_post_detail_has_blogposting_structured_data(self):
+        post = self.create_post(
+            title='Guia estruturado',
+            slug='guia-estruturado',
+            cover='posts/2026/09/guia-estruturado.jpg',
+        )
+
+        response = self.client.get(post.get_absolute_url())
+        schema = json.loads(response.context['blogposting_schema'])
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'type="application/ld+json"')
+        self.assertEqual(schema['@context'], 'https://schema.org')
+        self.assertEqual(schema['@type'], 'BlogPosting')
+        self.assertEqual(schema['headline'], post.title)
+        self.assertEqual(schema['description'], post.excerpt)
+        self.assertEqual(
+            schema['mainEntityOfPage']['@id'],
+            f'http://testserver{post.get_absolute_url()}',
+        )
+        self.assertEqual(schema['author']['@type'], 'Person')
+        self.assertEqual(schema['author']['name'], 'Ygor Lima')
+        self.assertEqual(
+            schema['image'],
+            ['http://testserver/media/posts/2026/09/guia-estruturado.jpg'],
+        )
+
+    def test_blogposting_omits_author_and_image_when_they_are_absent(self):
+        post = self.create_post(
+            title='Post sem autor e capa',
+            slug='post-sem-autor-e-capa',
+            created_by=None,
+            cover='',
+        )
+
+        response = self.client.get(post.get_absolute_url())
+        schema = json.loads(response.context['blogposting_schema'])
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('author', schema)
+        self.assertNotIn('image', schema)
 
     def test_post_detail_loads_travelpayouts_widget_loader(self):
         post = self.create_post()

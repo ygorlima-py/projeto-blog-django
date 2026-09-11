@@ -6,6 +6,10 @@
     <title>{{ post.title }} | {{ site_setup.title }}</title>
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
 
+    <script type="application/ld+json">
+        {{ blogposting_schema|safe }}
+    </script>
+
     <meta property="og:locale" content="pt_BR">
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="{{ site_setup.title }}">
