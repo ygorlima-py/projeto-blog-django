@@ -1,13 +1,18 @@
+import json
 from typing import Any
+
 from django.shortcuts import render, redirect
 from blog.models import Post, Page
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
+from django.urls import reverse
+from django.utils.html import strip_tags
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
-from typing import Any
 from django.db.models.query import QuerySet
+
+from site_setup.models import SiteSetup
 
 
 '''
@@ -187,10 +192,70 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         contexto = super().get_context_data(**kwargs)
-        post = self.get_object()
+        post = self.object
         page_title = f'{post.title} - Post -' #type: ignore
+
+        post_url = self.request.build_absolute_uri(post.get_absolute_url())
+        homepage_url = self.request.build_absolute_uri('/')
+        site_setup = SiteSetup.objects.order_by('-id').first()
+        publisher_name = site_setup.title if site_setup else 'Ásia de Perto'
+
+        publisher: dict[str, Any] = {
+            '@type': 'Organization',
+            'name': publisher_name,
+            'url': homepage_url,
+        }
+
+        if site_setup and site_setup.logo:
+            publisher['logo'] = {
+                '@type': 'ImageObject',
+                'url': self.request.build_absolute_uri(site_setup.logo.url),
+            }
+
+        blogposting_schema: dict[str, Any] = {
+            '@context': 'https://schema.org',
+            '@type': 'BlogPosting',
+            'mainEntityOfPage': {
+                '@type': 'WebPage',
+                '@id': post_url,
+            },
+            'url': post_url,
+            'headline': post.title,
+            'description': strip_tags(post.excerpt),
+            'datePublished': post.created_at.isoformat(),
+            'dateModified': post.updated_at.isoformat(),
+            'publisher': publisher,
+            'inLanguage': 'pt-BR',
+        }
+
+        if post.created_by:
+            author_name = (
+                post.created_by.get_full_name().strip()
+                or post.created_by.get_username()
+            )
+            blogposting_schema['author'] = {
+                '@type': 'Person',
+                'name': author_name,
+                'url': self.request.build_absolute_uri(
+                    reverse('blog:created_by', args=(post.created_by.pk,)),
+                ),
+            }
+
+        if post.cover:
+            blogposting_schema['image'] = [
+                self.request.build_absolute_uri(post.cover.url),
+            ]
+
+        blogposting_schema_json = (
+            json.dumps(blogposting_schema, ensure_ascii=False)
+            .replace('&', '\\u0026')
+            .replace('<', '\\u003c')
+            .replace('>', '\\u003e')
+        )
+
         contexto.update({
             'page_title': page_title,
+            'blogposting_schema': blogposting_schema_json,
         })
 
         return contexto
