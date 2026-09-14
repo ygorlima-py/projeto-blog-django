@@ -53,6 +53,27 @@ class PublicBlogViewsTests(TestCase):
         self.assertContains(response, published_post.title)
         self.assertNotContains(response, draft_post.title)
 
+    def test_homepage_has_seo_title_description_and_canonical(self):
+        response = self.client.get(reverse('blog:index'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '<title>Viagem e vida na Ásia | Ásia de Perto</title>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="http://testserver/">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<meta name="description" content="Custos, vistos e dicas para '
+            'viajar e morar na Ásia, com relatos de quem vive na região.">',
+            html=True,
+        )
+
     def test_post_detail_is_available_only_when_published(self):
         published_post = self.create_post(title='Post visível', slug='post-visivel')
         draft_post = self.create_post(
@@ -214,13 +235,24 @@ class PublicBlogViewsTests(TestCase):
         self.assertContains(response, 'empresa onde a compra for concluída.')
         self.assertContains(
             response,
-            'Pesquise e compare voos para a Tailândia e destinos no mundo todo.',
+            'Pesquise e compare passagens aéreas para destinos no mundo todo.',
             count=1,
         )
         self.assertContains(
             response,
-            '<meta name="description" content="Pesquise e compare voos para a '
-            'Tailândia e destinos no mundo todo.">',
+            '<title>Passagens aéreas | Ásia de Perto</title>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="http://testserver/pagina/passagens-aereas/">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<meta name="description" content="Pesquise e compare passagens '
+            'aéreas para destinos no mundo todo. Consulte opções de voos e '
+            'conclua sua reserva no site do parceiro.">',
             html=True,
         )
         self.assertContains(response, 'booking-widget-content')
