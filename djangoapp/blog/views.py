@@ -3,6 +3,7 @@ from typing import Any
 
 from django.shortcuts import render, redirect
 from blog.models import Post, Page
+from blog.seo import build_canonical_url
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
@@ -44,6 +45,19 @@ class PostListView(ListView):
             'listing_eyebrow': 'Diário de viagem',
             'listing_title': 'Histórias mais recentes',
         })
+        if self.request.resolver_match.view_name == 'blog:index':
+            context.update({
+                'seo_title': 'Viagem e vida na Ásia',
+                'meta_description': (
+                    'Custos, vistos e dicas para viajar e morar na Ásia, com '
+                    'relatos de quem vive na região.'
+                ),
+                'canonical_url': build_canonical_url(
+                    self.request,
+                    reverse('blog:index'),
+                    context.get('page_obj'),
+                ),
+            })
         return context
 
 class CreatedByListView(PostListView):
@@ -165,7 +179,7 @@ class SearchListView(PostListView):
             return redirect('blog:index')
         return super().get(request, *args, **kwargs)
 
-class PageDetailView(DetailView): 
+class PageDetailView(DetailView):
     model = Page
     template_name = 'blog/pages/page.html'
     slug_field = 'slug'
@@ -178,6 +192,19 @@ class PageDetailView(DetailView):
         contexto.update({
             'page_title': page_title,
         })
+
+        if page.slug == 'passagens-aereas':
+            contexto.update({
+                'seo_title': page.title,
+                'meta_description': (
+                    'Pesquise e compare passagens aéreas para destinos no '
+                    'mundo todo. Consulte opções de voos e conclua sua '
+                    'reserva no site do parceiro.'
+                ),
+                'canonical_url': build_canonical_url(
+                    self.request, page.get_absolute_url(),
+                ),
+            })
 
         return contexto
     

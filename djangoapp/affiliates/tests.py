@@ -148,6 +148,21 @@ class AffiliateListViewTests(TestCase):
         response = self.client.get(reverse('affiliates:list'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '<title>Serviços para sua viagem | Ásia de Perto</title>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="http://testserver/parceiros/">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<h1 id="affiliates-title">Serviços</h1>',
+            html=True,
+        )
         self.assertQuerySetEqual(
             response.context_data['partners'],
             [published_partner],
@@ -180,6 +195,22 @@ class AffiliateListViewTests(TestCase):
             response.context_data['active_category'],
             self.category,
         )
+        self.assertContains(
+            response,
+            '<title>Passagens | Ásia de Perto</title>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="http://testserver/parceiros/categoria/passagens/">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<h1 id="affiliates-title">Passagens</h1>',
+            html=True,
+        )
+        self.assertContains(response, 'Explore opções de Passagens.')
         self.assertQuerySetEqual(
             response.context_data['categories'],
             [other_category, self.category],

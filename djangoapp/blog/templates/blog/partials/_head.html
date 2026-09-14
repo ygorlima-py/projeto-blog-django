@@ -2,8 +2,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#123d3a">
-{% if page and page.slug == 'passagens-aereas' %}
-    <meta name="description" content="Pesquise e compare voos para a Tailândia e destinos no mundo todo.">
+{% if seo_title %}
+    <title>{{ seo_title }}{% if page_obj and page_obj.number > 1 %} - Página {{ page_obj.number }}{% endif %} | {{ site_setup.title|default:"Ásia de Perto" }}</title>
+    <link rel="canonical" href="{{ canonical_url }}">
+{% endif %}
+{% if meta_description %}
+    <meta name="description" content="{{ meta_description|striptags|truncatechars:160 }}">
 {% elif post and post.excerpt %}
     <meta name="description" content="{{ post.excerpt|truncatechars:160 }}">
 {% elif site_setup.description %}
