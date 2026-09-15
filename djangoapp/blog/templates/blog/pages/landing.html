@@ -1,0 +1,197 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{% static 'blog/css/remedy.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+    >
+    <title>Landing page | {{ site_setup.title|default:"Ásia de Perto" }}</title>
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body id="top" class="site-body landing-page">
+    <a class="skip-link" href="#main-content">
+        Pular para o conteúdo
+    </a>
+
+    <div class="blog-wrapper">
+        {% include "blog/partials/_header.html" %}
+        <main id="main-content" class="landing-content">
+            <section class="landing-image-section" aria-label="Busca de destinos">
+                <div class="landing-hero-overlay"></div>
+
+                <div class="landing-search-content">
+                    <h1>Bem vindo ao Sudeste Asiático</h1>
+
+                    <form
+                        class="landing-search-form"
+                        action="{% url 'blog:search' %}"
+                        method="get"
+                    >
+                        <div class="landing-search-input">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                                <path d="m15.5 15.5 5 5"></path>
+                            </svg>
+
+                            <label for="landing-search" class="sr-only">
+                                Bora ver a Ásia de perto?
+                            </label>
+
+                            <input
+                                type="search"
+                                id="landing-search"
+                                name="search"
+                                placeholder="Para onde você quer ir?"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit">
+                            <div>
+                                Pesquisar
+                            </div>
+                        </button>
+                    </form>
+                </div>
+            </section>
+            <section class="landing-intro" aria-label="landing-intro">
+                <div class="landing-intro-shell section-content-wide">
+
+                    <div class="landing-intro-media">
+                        <img
+                            class="landing-intro-collage"
+                            src="{% static 'blog/images/1.png' %}"
+                            alt="Composição de fotos de viagens"
+                        >
+                    </div>
+
+                    <div class="landing-intro-content">
+                        <div class="site-brand" aria-label="Página inicial de {{ site_setup.title }}">
+                            {% if site_setup.logo %}
+                                <img class="site-brand-logo" src="{{ site_setup.logo.url }}" alt="" aria-hidden="true">
+                                <span class="landing-intro-site-brand-name">{{ site_setup.title }}</span>
+                            {% else %}
+                                <span class="landing-intro-site-brand-name">{{ site_setup.title}}</span>   
+                            {% endif %}
+                        </div>
+                        <div class="landing-intro-description">
+                            <p>
+                                Fala Pessoal! Aqui é o Ygor. Sou Engenheiro Agrônomo, 
+                                Engenheiro de Software e criador de conteúdo digital.
+                            </p>
+                            <br>
+                            <p>
+                                A partir de 2025 moro na Tailândia e Viajo pela Ásia,
+                                aqui eu documento toda minha jornada, perrengues, dicas
+                                realmente vivida.
+                            </p>
+                        </div>
+                        <div class="landing-intro-buton-know-history">
+                            <a href="{% url 'blog:index' %}" class="landing-intro-button">
+                                CLIQUE PARA CONHECER MAIS HISTÓRIAS
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <section class="landing-explore-section" aria-label="landing-explore-asia">
+                <h2 class="landing-explore-title">EXPLORE A ÁSIA</h2>
+
+                <div class="landing-destinations-swiper swiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <a href="{% url 'blog:category' 'tailandia' %}" class="landing-destination-card">
+                                <img src="https://images.pexels.com/photos/16963635/pexels-photo-16963635.jpeg" alt="Tailândia">
+                                <strong>TAILÂNDIA</strong>
+                            </a>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <a href="{% url 'blog:category' 'vietna' %}" class="landing-destination-card">
+                                <img src="https://images.pexels.com/photos/2131935/pexels-photo-2131935.jpeg" alt="Vietnã">
+                                <strong>VIETNÃ</strong>
+                            </a>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <a href="{% url 'blog:category' 'vietna' %}" class="landing-destination-card">
+                                <img src="https://images.pexels.com/photos/7235901/pexels-photo-7235901.jpeg" alt="Vietnã">
+                                <strong>VISTO</strong>
+                            </a>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <a href="{% url 'blog:category' 'vietna' %}" class="landing-destination-card">
+                                <img src="https://images.pexels.com/photos/5405596/pexels-photo-5405596.jpeg" alt="Vietnã">
+                                <strong>VISTO</strong>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button class="landing-destinations-prev">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button class="landing-destinations-next">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div class="landing-destinations-pagination"></div>
+                </div>
+            </section>
+            <section class="landing-afiliates" aria-label="landing-afiliates">
+                  <div class="landing-affiliates-heading">
+                    <h2 id="landing-affiliates-title">
+                        DESCONTOS ÚNICOS<br>
+                        DO ÁSIA DE PERTO
+                    </h2>
+                </div>
+
+                <div class="landing-affiliates-content">
+                    <div class="landing-affiliates-description">
+                        <p>
+                            Descubra as ferramentas que eu e a maioria dos nômades digitais usamos para economizar durante nossas viagens pela Ásia.
+                        </p>
+                    </div>
+
+                    <ul>
+                        {% for category in affiliate_categories %}
+                            <li >
+                                <a class="landing-affiliates-categories" href="{% url 'affiliates:category' category.slug %}">
+                                    {% if category.icon %}
+                                    <div class="landing-affiliates-categories-circle">
+                                        <span
+                                            class="landing-affiliate-icon"
+                                            aria-hidden="true"
+                                            style="--icon-url: url('{{ category.icon.url }}');"
+                                        >
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    <span>{{ category.name }}</span>
+                                </a>
+                            </li>
+                    {% empty %}
+                        <li>Nenhuma categoria disponível.</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="{% static 'blog/javascript/landing-swipper.js' %}"></script>
+</body>
+</html>

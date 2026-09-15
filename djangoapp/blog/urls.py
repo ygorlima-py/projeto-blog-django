@@ -8,6 +8,7 @@ from blog.views import (
                         CategoryListView, 
                         TagListView, 
                         SearchListView,
+                        LandingPageView,
                         )
 
 
@@ -34,5 +35,9 @@ urlpatterns = [
     ),
     path('tag/<slug:slug>/', TagListView.as_view(), name='tag'), # type: ignore
     path('serarch/', SearchListView.as_view(), name='search'), 
-
+    path(
+        'landing/',
+        LandingPageView.as_view(),
+        name='landing',
+    ),
 ]

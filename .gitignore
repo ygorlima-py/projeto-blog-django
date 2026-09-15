@@ -141,7 +141,10 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
-
 deploy.md
 cookies.md
 .vscode
+
+
+djangoapp/blog/static/blog/images
+commands.md

@@ -12,8 +12,9 @@ from django.utils.html import strip_tags
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.db.models.query import QuerySet
-
+from django.views.generic.base import TemplateView
 from site_setup.models import SiteSetup
+from affiliates.models import AffiliateCategory
 
 
 '''
@@ -289,3 +290,13 @@ class PostDetailView(DetailView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter(is_published=True)
+
+class LandingPageView(TemplateView):
+    template_name = "blog/pages/landing.html"
+    
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["affiliate_categories"] = AffiliateCategory.objects.available()
+        
+        return context
+    
