@@ -1,0 +1,17 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+    <h1>{{ story.title }}</h1>
+
+    {% for slide in story.slides.all %}
+        <section>
+            <img src="{{ slide.image.url }}" alt="{{ slide.alt_text }}">
+
+            {% for element in slide.elements.all %}
+                <div>
+                    {{ element.text }}
+                </div>
+            {% endfor %}
+        </section>
+    {% endfor %}
+{% endblock content %}

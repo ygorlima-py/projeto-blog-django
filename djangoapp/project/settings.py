@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'blog',
     'site_setup',
     'affiliates',
+    'stories',
 
     # Django Summernote
     'project.apps.ProjectSummernoteConfig',

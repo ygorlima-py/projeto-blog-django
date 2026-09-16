@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="{% static 'blog/css/remedy.css' %}">
-    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
     <link
     href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
     rel="stylesheet"
@@ -16,6 +15,7 @@
     <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
     <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -187,6 +187,94 @@
                         <li>Nenhuma categoria disponível.</li>
                     {% endfor %}
                     </ul>
+                </div>
+            </section>
+            <section class="landing-stories-section" aria-labelledby="landing-stories-title">
+                <h2 id="landing-stories-title" class="landing-stories-title">
+                    WEBSTORIES
+                </h2>
+
+                <div class="landing-stories-swiper swiper">
+                    <div class="landing-stories-cards swiper-wrapper">
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-1/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum, dolor sit amet consectetur adipisicing elit.</strong>
+                                </a>
+                            </article>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-2/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit amet consectetur adipisicing.</strong>
+                                </a>
+                            </article>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-3/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Commodi?</strong>
+                                </a>
+                            </article>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-4/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit amet consectetur adipisicing.</strong>
+                                </a>
+                            </article>
+                        </div>
+
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-5/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Provident!</strong>
+                                </a>
+                            </article>
+                        </div>
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-6/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</strong>
+                                </a>
+                            </article>
+                        </div>
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-7/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit amet consectetur adipisicing.</strong>
+                                </a>
+                            </article>
+                        </div>
+                        <div class="swiper-slide">
+                            <article class="landing-story-card">
+                                <a href="#">
+                                    <img src="https://picsum.photos/seed/story-8/400/600" alt="Imagem temporária">
+                                    <strong>Lorem ipsum dolor sit, amet consectetur adipisicing elit.</strong>
+                                </a>
+                            </article>
+                        </div>
+                    </div>
+
+                    <button class="landing-stories-prev" type="button" aria-label="Story anterior">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+
+                    <button class="landing-stories-next" type="button" aria-label="Próxima story">
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="landing-stories-pagination swiper-pagination"></div>
                 </div>
             </section>
         </main>

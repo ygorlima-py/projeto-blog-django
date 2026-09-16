@@ -2,8 +2,7 @@ import json
 from typing import Any
 
 from django.shortcuts import render, redirect
-from blog.models import Post, Page
-from blog.seo import build_canonical_url
+
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
@@ -13,8 +12,12 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.db.models.query import QuerySet
 from django.views.generic.base import TemplateView
+
+from blog.models import Post, Page
+from blog.seo import build_canonical_url
 from site_setup.models import SiteSetup
 from affiliates.models import AffiliateCategory
+from stories.models import Story
 
 
 '''
@@ -296,7 +299,11 @@ class LandingPageView(TemplateView):
     
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        
         context["affiliate_categories"] = AffiliateCategory.objects.available()
+        context["stories"] = Story.objects.filter(is_published=True).order_by("order", "title")
         
         return context
+    
+
     

@@ -2605,7 +2605,7 @@ a.post-label:hover {
     width: auto;
     font-family: montserrat, sans-serif;
     font-size: 30px;
-    color: #545454;
+    color: var(--color-ink);
     text-align: center;
     font-weight: 400;
     position: relative;
@@ -2621,14 +2621,14 @@ a.post-label:hover {
     left: 50%;
     width: 30%;
     height: 1px;
-    background: #545454;
+    background: var(--color-ink);
     transform: translateX(-50%);
 }
 
 .landing-destinations-swiper {
     position: relative;
     overflow: hidden;
-    padding: 2rem 4rem 5rem;
+    padding: 2rem 0 5rem;
     max-width: 120rem; /* diminua este valor */
     margin: 0 auto;
     margin-bottom: 5rem;
@@ -2642,6 +2642,25 @@ a.post-label:hover {
     border-radius: 1.4rem;
 }
 
+.landing-destination-card::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.1);
+    transition: opacity 250ms ease;
+    pointer-events: none;
+}
+
+.landing-destination-card:hover::before,
+.landing-destination-card:focus-visible::before {
+    opacity: 0;
+}
+
+.landing-destination-card strong {
+    z-index: 2;
+}
+
 .landing-destination-card::after {
     content: "";
     position: absolute;
@@ -2653,6 +2672,7 @@ a.post-label:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 450ms ease;
 }
 
 .landing-destination-card strong {
@@ -2665,6 +2685,11 @@ a.post-label:hover {
     text-align: center;
     font-family: 'Montserrat', sans-serif;
     font-size: 2rem;
+}
+
+.landing-destination-card:hover img,
+.landing-destination-card:focus-visible img {
+    transform: scale(1.08);
 }
 
 .landing-destinations-pagination {
@@ -2691,13 +2716,18 @@ a.post-label:hover {
 
     border: 0;
     border-radius: 50%;
-    background: var(--color-accent);
+    background: rgba(217, 108, 67, 0.5);
     color: #fff;
 
     font-size: 2.4rem;
     line-height: 1;
     cursor: pointer;
     transform: translateY(-50%);
+}
+
+.landing-destinations-prev:hover,
+.landing-destinations-next:hover {
+    background-color: rgba(217, 108, 67, 1);
 }
 
 .landing-destinations-prev {
@@ -2714,8 +2744,8 @@ a.post-label:hover {
 }
 
 .landing-destinations-pagination .swiper-pagination-bullet {
-    width: 0.8rem;
-    height: 0.8rem;
+    width: 1.2rem;
+    height: 1.2rem;
     background: #ccc;
     opacity: 1;
 }
@@ -2728,7 +2758,7 @@ a.post-label:hover {
 .landing-afiliates {
     --color-affiliates-accent: color-mix(
         in srgb,
-        var(--color-accent) 80%,
+        var(--color-accent) 85%,
         white
     );
     width: 100%;
@@ -2753,8 +2783,9 @@ a.post-label:hover {
     width: min(38rem, calc(100% - 2rem));
     padding: 2rem;
     background: #fff;
-    box-shadow: 0 1rem 2rem rgb(0 0 0 / 12%);
+    box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 20%);
     transform: translate(-50%, -50%);
+    border-radius: 8px;
 }
 
 .landing-affiliates-content {
@@ -2874,7 +2905,171 @@ a.post-label:hover {
     transform: scaleX(1);
 }
 
+.landing-stories-section {
+    width: 100%;
+    padding: 4rem 0 0;
+    background: var(--color-white);
+}
 
+.landing-stories-title {
+    display: table;
+    width: auto;
+    font-family: montserrat, sans-serif;
+    font-size: 30px;
+    color: var(--color-ink);
+    text-align: center;
+    font-weight: 400;
+    position: relative;
+    padding-bottom: 1.2rem;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+}
+
+.landing-stories-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--color-ink);
+    transform: translateX(-50%);
+}
+
+.landing-stories-swiper {
+    position: relative;
+    width: 100%;
+    margin: 3rem 0;
+    overflow: hidden;
+}
+
+.landing-stories-cards {
+    display: flex;
+}
+
+.landing-stories-swiper .swiper-slide {
+    width: 26rem;
+}
+
+.landing-story-card {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    font;
+}
+
+.landing-story-card img {
+    border-radius: 8px;
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform 450ms ease;
+}
+
+.landing-story-card:hover img,
+.landing-story-card:focus-visible img{
+        transform: scale(1.08);
+}
+
+.landing-story-card a {
+    position: relative;
+    display: block;
+}
+
+.landing-story-card a::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: rgba(7, 7, 7, 0.1);
+    transition: opacity 250ms ease;
+    pointer-events: none;
+}
+
+
+.landing-story-card a:hover::before,
+.landing-story-card a:focus-visible::before {
+    opacity: 0;
+}
+
+.landing-story-card strong {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    color: var(--color-white);
+    text-align: center;
+    font-family: Montserrat, sans-serif;
+    font-size: var(--text-sm);
+    text-shadow: 0 2px 4px #000;
+    text-transform: uppercase;
+    z-index: 2;
+}
+
+.landing-stories-prev,
+.landing-stories-next {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    display: grid;
+    width: 3.75rem;
+    height: 3.75rem;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: var(--color-white);
+    background: rgba(217, 108, 67, 0.55);
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.landing-stories-prev {
+    left: 1.5rem;
+}
+
+.landing-stories-next {
+    right: 1.5rem;
+}
+
+.landing-stories-prev:hover,
+.landing-stories-next:hover {
+    background: rgba(217, 108, 67, 1);
+}
+
+.landing-stories-section
+.landing-stories-swiper
+.landing-stories-pagination {
+    position: static;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    bottom: auto;
+    left: auto;
+    transform: none;
+}
+
+.landing-stories-pagination .swiper-pagination-bullet {
+    width: 1.2rem;
+    height: 1.2rem;
+    background: var(--color-ink);
+    opacity: 0.25;
+}
+
+.landing-stories-section
+.landing-stories-pagination
+.swiper-pagination-bullet {
+    margin: 0;
+}
+
+.landing-stories-pagination .swiper-pagination-bullet-active {
+    background: var(--color-accent);
+    opacity: 1;
+}
 
 @media (max-width: 760px) {
     .landing-intro-shell {
