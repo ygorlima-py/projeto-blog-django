@@ -1,17 +1,234 @@
 {% extends "blog/base.html" %}
+{% load static %}
+
+{% block site_header %}{% endblock site_header %}
+{% block site_pagination %}{% endblock site_pagination %}
+{% block site_footer %}{% endblock site_footer %}
 
 {% block content %}
-    <h1>{{ story.title }}</h1>
+    <main  id="main-content" class="story-viewer">
+         <button
+            class="story-navigation story-navigation--previous"
+            type="button"
+            aria-label="Voltar para o slide anterior"
+            aria-controls="story-stage"
+            data-story-previous
+            >
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
 
-    {% for slide in story.slides.all %}
-        <section>
-            <img src="{{ slide.image.url }}" alt="{{ slide.alt_text }}">
-
-            {% for element in slide.elements.all %}
-                <div>
-                    {{ element.text }}
+        <div class="story-stage">
+            <header class="story-stage-header">
+                <div class="story-progress" aria-hidden="true">
+                    {% for slide in story.slides.all %}
+                        <div
+                            class="story-progress-track"
+                            data-progress-index="{{ forloop.counter0 }}"
+                        >
+                            <span class="story-progress-bar"></span>
+                        </div>
+                    {% endfor %}
                 </div>
+
+                <div class="story-controls">
+                    <button
+                        class="story-pause-button"
+                        type="button"
+                        aria-label="Pausar story"
+                        aria-pressed="false"
+                        data-story-pause
+                    >
+                        <i class="fa-solid fa-pause" aria-hidden="true"></i>
+                    </button>
+
+                    <button
+                        class="story-share-button"
+                        type="button"
+                        aria-label="Compartilhar story"
+                        data-story-share
+                    >
+                        <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </header>
+            <h1>{{ story.title }}</h1>
+
+            {% for slide in story.slides.all %}
+                <section  class="story-slide{% if forloop.first %} is-active{% endif %}"
+                    data-slide-index="{{ forloop.counter0 }}"
+                >
+                    <img
+                       class="story-slide-image"
+                        src="{{ slide.image.url }}"
+                        alt="{{ slide.alt_text }}"
+                    >
+
+                    <div class="story-slide-content">
+                        <div class="story-region story-region--top">
+                            {% for element in slide.elements.all %}
+                                {% if element.position == "top" %}
+
+                                    {% if element.element_type == "cta" %}
+                                        <a
+                                            class="
+                                                story-element
+                                                story-element--{{ element.position }}
+                                                story-element--cta
+                                                story-element--{{ element.animation }}
+                                            "
+                                            href="{{ element.affiliate_partner.affiliate_url }}"
+                                            target="_blank"
+                                            rel="sponsored nofollow external noopener noreferrer"
+                                            data-animation="{{ element.animation }}"
+                                            data-delay-ms="{{ element.delay_ms }}"
+                                            style="
+                                                --story-text-color: {{ element.variant }};
+                                                {% if element.background_color %}
+                                                    --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                            "
+                                        >
+                                            {{ element.affiliate_partner.button_label }}
+                                        </a>
+                                    {% else %}
+                                    <div
+                                        class="
+                                            story-element
+                                            story-element--{{ element.position }}
+                                            story-element--{{ element.element_type }}
+                                            story-element--{{ element.animation }}
+                                        "
+                                        data-animation="{{ element.animation }}"
+                                        data-delay-ms="{{ element.delay_ms }}"
+                                        style="
+                                            --story-text-color: {{ element.variant }};
+                                            {% if element.background_color %}
+                                                --story-background-color: {{ element.background_color }};
+                                            {% endif %}
+                                        "
+                                    >
+                                        {{ element.text }}
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="story-region story-region--center">
+                            {% for element in slide.elements.all %}
+                                {% if element.position == "center" %}
+                                    {% if element.element_type == "cta" %}
+                                        <a
+                                            class="
+                                                story-element
+                                                story-element--{{ element.position }}
+                                                story-element--cta
+                                                story-element--{{ element.animation }}
+                                            "
+                                            href="{{ element.affiliate_partner.affiliate_url }}"
+                                            target="_blank"
+                                            rel="sponsored nofollow external noopener noreferrer"
+                                            data-animation="{{ element.animation }}"
+                                            data-delay-ms="{{ element.delay_ms }}"
+                                            style="
+                                                --story-text-color: {{ element.variant }};
+                                                {% if element.background_color %}
+                                                    --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                            "
+                                        >
+                                            {{ element.affiliate_partner.button_label }}
+                                        </a>
+                                    {% else %}
+                                        <div
+                                            class="
+                                                story-element
+                                                story-element--{{ element.position }}
+                                                story-element--{{ element.element_type }}
+                                                story-element--{{ element.animation }}
+                                            "
+                                            data-animation="{{ element.animation }}"
+                                            data-delay-ms="{{ element.delay_ms }}"
+                                            style="
+                                                --story-text-color: {{ element.variant }};
+                                                {% if element.background_color %}
+                                                    --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                            "
+                                        >
+                                            {{ element.text }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="story-region story-region--bottom">
+                            {% for element in slide.elements.all %}
+                                {% if element.position == "bottom" %}
+                                    {% if element.element_type == "cta" %}
+                                        <a
+                                            class="
+                                                story-element
+                                                story-element--{{ element.position }}
+                                                story-element--cta
+                                                story-element--{{ element.animation }}
+                                            "
+                                            href="{{ element.affiliate_partner.affiliate_url }}"
+                                            target="_blank"
+                                            rel="sponsored nofollow external noopener noreferrer"
+                                            data-animation="{{ element.animation }}"
+                                            data-delay-ms="{{ element.delay_ms }}"
+                                            style="
+                                                --story-text-color: {{ element.variant }};
+                                                {% if element.background_color %}
+                                                    --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                            "
+                                        >
+                                            {{ element.affiliate_partner.button_label }}
+                                        </a>
+                                    {% else %}
+                                        <div
+                                            class="
+                                                story-element
+                                                story-element--{{ element.position }}
+                                                story-element--{{ element.element_type }}
+                                                story-element--{{ element.animation }}
+                                            "
+                                            data-animation="{{ element.animation }}"
+                                            data-delay-ms="{{ element.delay_ms }}"
+                                            style="
+                                                --story-text-color: {{ element.variant }};
+                                                {% if element.background_color %}
+                                                    --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                            "
+                                        >
+                                            {{ element.text }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}  
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
             {% endfor %}
-        </section>
-    {% endfor %}
+        </div>
+         <button
+            class="story-navigation story-navigation--next"
+            type="button"
+            aria-label="Avançar para o próximo slide"
+            aria-controls="story-stage"
+            data-story-next
+        >
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+    </main>
 {% endblock content %}
+{% block additional_scripts %}
+    <script
+        src="{% static 'blog/javascript/story_detail.js' %}"
+        defer
+    ></script>
+{% endblock additional_scripts %}

@@ -21,6 +21,7 @@ class StoryElementInline(admin.TabularInline):
         "element_type",
         "text",
         "variant",
+        "use_background_color",
         "background_color",
         "position",
         "animation",
