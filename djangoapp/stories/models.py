@@ -9,11 +9,12 @@ elements rendered over each slide.
 Only file paths are persisted in the database. The actual image files are
 managed by Django's configured storage backend under ``MEDIA_ROOT``.
 """
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator,  MaxValueValidator, MinValueValidator
 
 
 class Story(models.Model):
@@ -105,8 +106,24 @@ class StoryElement(models.Model):
 
     class Animation(models.TextChoices):
         FADE_UP = "fade-up", "Aparecer de baixo"
+        FADE_LEFT = "fade-left", "Aparecer da esquerda"
         FADE = "fade", "Aparecer"
         NONE = "none", "Sem animação"
+        
+    class FontWeight(models.IntegerChoices):
+        THIN = 100, "Thin (100)"
+        EXTRA_LIGHT = 200, "Extra Light (200)"
+        LIGHT = 300, "Light (300)"
+        REGULAR = 400, "Regular (400)"
+        MEDIUM = 500, "Medium (500)"
+        SEMI_BOLD = 600, "Semi Bold (600)"
+        BOLD = 700, "Bold (700)"
+        EXTRA_BOLD = 800, "Extra Bold (800)"
+        BLACK = 900, "Black (900)"
+    
+    class FontStyle(models.TextChoices):
+        NORMAL = "normal", "Normal"
+        ITALIC = "italic", "Itálico"
     
     slide = models.ForeignKey(
         StorySlide,
@@ -125,7 +142,35 @@ class StoryElement(models.Model):
         blank=True,
         verbose_name="texto",
         help_text="Texto exibido sobre a imagem. Deixe vazio para botões.",
-    ) 
+    )   
+    font_size_rem = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(Decimal("0.50")),
+            MaxValueValidator(Decimal("5.00")),
+        ],
+        verbose_name="tamanho da fonte (rem)",
+        help_text="Deixe vazio para usar o tamanho padrão.",
+    )
+    
+    font_weight = models.PositiveSmallIntegerField(
+        choices=FontWeight.choices,
+        blank=True,
+        null=True,
+        verbose_name="peso da fonte",
+        help_text="Deixe vazio para usar o peso padrão do tipo.",
+    )
+    
+    font_style = models.CharField(
+        max_length=10,
+        choices=FontStyle.choices,
+        default=FontStyle.NORMAL,
+        verbose_name="estilo da fonte",
+    )
+    
     variant = models.CharField(
         max_length=7,
         default="#D96C43",

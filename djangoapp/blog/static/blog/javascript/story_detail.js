@@ -1,5 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+
     const storyViewer = document.querySelector(".story-viewer");
+    const backdropCanvas = storyViewer.querySelector(
+        "[data-story-backdrop]"
+    );
+    const backdropContext = backdropCanvas?.getContext("2d");
+
 
     if (!storyViewer) {
         return;
@@ -32,6 +38,57 @@ document.addEventListener("DOMContentLoaded", () => {
     let isPaused = false;
     let remainingTimeMs = SLIDE_DURATION_MS;
     let playbackStartedAt = 0;
+
+    function updateStoryBackdrop(activeSlide) {
+    if (!backdropCanvas || !backdropContext) {
+        return;
+    }
+
+    const activeImage = activeSlide.querySelector(
+        ".story-slide-image"
+    );
+
+    if (!activeImage) {
+        return;
+    }
+
+    function drawBackdrop() {
+        backdropContext.clearRect(
+            0,
+            0,
+            backdropCanvas.width,
+            backdropCanvas.height
+        );
+
+        backdropContext.drawImage(
+            activeImage,
+            0,
+            0,
+            backdropCanvas.width,
+            backdropCanvas.height
+        );
+
+        backdropCanvas.animate(
+            [
+                { opacity: 0.4 },
+                { opacity: 1 },
+            ],
+            {
+                duration: 350,
+                easing: "ease",
+                fill: "both",
+            }
+        );
+    }
+
+    if (activeImage.complete && activeImage.naturalWidth > 0) {
+        drawBackdrop();
+    } else {
+        activeImage.addEventListener("load", drawBackdrop, {
+            once: true,
+        });
+        }
+    }
 
     function restartElementAnimations(activeSlide) {
         const allElements = storyViewer.querySelectorAll(".story-element");
@@ -195,7 +252,10 @@ document.addEventListener("DOMContentLoaded", () => {
             slide.setAttribute("aria-hidden", String(!isActive));
         });
 
+
         currentSlideIndex = normalizedIndex;
+
+        updateStoryBackdrop(slides[currentSlideIndex]);
 
         restartElementAnimations(slides[currentSlideIndex]);
         restartPlayback();

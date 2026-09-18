@@ -1,12 +1,20 @@
 {% extends "blog/base.html" %}
 {% load static %}
-
+{% load static l10n %}
+-
 {% block site_header %}{% endblock site_header %}
 {% block site_pagination %}{% endblock site_pagination %}
 {% block site_footer %}{% endblock site_footer %}
 
 {% block content %}
     <main  id="main-content" class="story-viewer">
+            <canvas
+                class="story-backdrop"
+                width="6"
+                height="6"
+                data-story-backdrop
+                aria-hidden="true"
+            ></canvas>
          <button
             class="story-navigation story-navigation--previous"
             type="button"
@@ -86,6 +94,10 @@
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
                                                 {% endif %}
+                                                {% if element.font_size_rem %}
+                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
+                                                {% endif %}
+                                                
                                             "
                                         >
                                             {{ element.affiliate_partner.button_label }}
@@ -102,8 +114,15 @@
                                         data-delay-ms="{{ element.delay_ms }}"
                                         style="
                                             --story-text-color: {{ element.variant }};
+                                            --story-font-style: {{element.font_style}};
                                             {% if element.background_color %}
                                                 --story-background-color: {{ element.background_color }};
+                                            {% endif %}
+                                            {% if element.font_size_rem %}
+                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
+                                            {% endif %}
+                                            {% if element.font_weight %}
+                                                --story-font-weight: {{ element.font_weight }};
                                             {% endif %}
                                         "
                                     >
@@ -135,6 +154,9 @@
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
                                                 {% endif %}
+                                                {% if element.font_size_rem %}
+                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
+                                                {% endif %}
                                             "
                                         >
                                             {{ element.affiliate_partner.button_label }}
@@ -153,6 +175,9 @@
                                                 --story-text-color: {{ element.variant }};
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                                {% if element.font_size_rem %}
+                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
                                                 {% endif %}
                                             "
                                         >
@@ -184,6 +209,9 @@
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
                                                 {% endif %}
+                                                {% if element.font_size_rem %}
+                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
+                                                {% endif %}
                                             "
                                         >
                                             {{ element.affiliate_partner.button_label }}
@@ -202,6 +230,9 @@
                                                 --story-text-color: {{ element.variant }};
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+                                                {% if element.font_size_rem %}
+                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
                                                 {% endif %}
                                             "
                                         >

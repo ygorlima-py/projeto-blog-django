@@ -20,6 +20,9 @@ class StoryElementInline(admin.TabularInline):
     fields = (
         "element_type",
         "text",
+        "font_size_rem",
+        "font_weight",
+        "font_style",
         "variant",
         "use_background_color",
         "background_color",

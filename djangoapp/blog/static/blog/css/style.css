@@ -3107,7 +3107,33 @@ a.post-label:hover {
     align-items: center;
     background: #2f3e3a;
     box-sizing: border-box;
-    padding: 1rem;
+    /* padding: 1rem; */
+}
+
+.story-viewer {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.story-backdrop {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    filter: blur(0.5rem) brightness(0.55) saturate(1.2);
+    transform: scale(1.12);
+}
+
+.story-stage {
+    z-index: 1;
+}
+
+.story-navigation {
+    position: relative;
+    z-index: 2;
 }
 
 .story-stage {
@@ -3150,26 +3176,35 @@ a.post-label:hover {
     text-align: center;
     opacity: 0;
     pointer-events: auto;
-
+    border-radius: 3px;
+    font-style: var(--story-font-style);
 }
 
 .story-element--title {
     padding: 0.4rem 0.75rem;
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    font-weight: 700;
+    font-size: var(
+        --story-font-size,
+        clamp(1.5rem, 4vw, 2.5rem)
+        );
+    font-weight: var(--story-font-weight, 700);
 }
 
 .story-element--text {
     padding: 0.35rem 0.65rem;
-    font-size: clamp(1rem, 2.5vw, 1.5rem);
-    font-weight: 400;
+    font-size: var(
+        --story-font-size,
+        clamp(1rem, 2.5vw, 1.5rem)
+        );
+    font-weight: var(--story-font-weight, 400);
 }
 
 .story-element--badge {
     padding: 0.4rem 0.75rem;
-    font-size: clamp(1.2rem, 3vw, 2rem);
-    font-weight: 700;
-    text-transform: uppercase;
+    font-size: var(
+        --story-font-size,
+        clamp(1.2rem, 3vw, 2rem)
+        );
+    font-weight: var(--story-font-weight, 700);
 }
 
 .story-element--cta {
@@ -3179,8 +3214,11 @@ a.post-label:hover {
     padding: 0.75rem 1.25rem;
     border: 0.125rem solid currentColor;
     border-radius: 2rem;
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: var(
+        --story-font-size,
+        1rem
+    );
+    font-weight: var(--story-font-weight, 700);
     text-decoration: none;
 }
 
@@ -3277,6 +3315,11 @@ a.post-label:hover {
         var(--story-animation-delay, 0ms) both;
 }
 
+.story-element.is-visible[data-animation="fade-left"] {
+    animation: story-fade-left 450ms ease
+        var(--story-animation-delay, 0ms) both;
+}
+
 .story-element.is-visible[data-animation="fade-up"] {
     animation: story-fade-up 450ms ease
         var(--story-animation-delay, 0ms) both;
@@ -3298,6 +3341,7 @@ a.post-label:hover {
 
 .story-region--top {
     justify-content: flex-start;
+    gap: 0rem
 }
 
 .story-region--center {
@@ -3315,6 +3359,18 @@ a.post-label:hover {
 
     to {
         opacity: 1;
+    }
+}
+
+@keyframes story-fade-left {
+    from {
+        opacity: 0;
+        translate: -1.5rem 0;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
     }
 }
 
