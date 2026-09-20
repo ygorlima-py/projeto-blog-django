@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from .models import Story, StoryElement, StorySlide
-from .forms import StoryElementAdminForm
+from .forms import StoryElementAdminForm, StorySlideAdminForm
 
 class StorySlideInline(admin.TabularInline):
     """Allow slides to be created while editing a story."""
 
     model = StorySlide
-    extra = 1
+    extra = 0
     fields = ("image", "alt_text", "order")
 
 
@@ -16,7 +16,7 @@ class StoryElementInline(admin.TabularInline):
 
     model = StoryElement
     form = StoryElementAdminForm
-    extra = 1
+    extra = 0
     fields = (
         "element_type",
         "text",
@@ -29,8 +29,10 @@ class StoryElementInline(admin.TabularInline):
         "position",
         "animation",
         "delay_ms",
+        "duration_ms",
         "order",
         "affiliate_partner",
+        "post",
     )
     autocomplete_fields = ("affiliate_partner",)
 
@@ -54,7 +56,7 @@ class StorySlideAdmin(admin.ModelAdmin):
     ordering = ("story", "order", "id")
     autocomplete_fields = ("story",)
     inlines = (StoryElementInline,)
-
+    form = StorySlideAdminForm
 
 @admin.register(StoryElement)
 class StoryElementAdmin(admin.ModelAdmin):
@@ -64,6 +66,7 @@ class StoryElementAdmin(admin.ModelAdmin):
         "variant",
         "order",
         "affiliate_partner",
+        "post",
     )
     list_filter = ("element_type", "variant", "animation")
     search_fields = ("text", "slide__story__title")

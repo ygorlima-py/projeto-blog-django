@@ -1,265 +1,266 @@
-{% extends "blog/base.html" %}
-{% load static %}
-{% load static l10n %}
--
-{% block site_header %}{% endblock site_header %}
-{% block site_pagination %}{% endblock site_pagination %}
-{% block site_footer %}{% endblock site_footer %}
+{% load l10n %}
 
-{% block content %}
-    <main  id="main-content" class="story-viewer">
-            <canvas
-                class="story-backdrop"
-                width="6"
-                height="6"
-                data-story-backdrop
-                aria-hidden="true"
-            ></canvas>
-         <button
-            class="story-navigation story-navigation--previous"
-            type="button"
-            aria-label="Voltar para o slide anterior"
-            aria-controls="story-stage"
-            data-story-previous
+<!doctype html>
+<html amp lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+
+    <title>{{ story.title }}</title>
+
+    <link
+        rel="canonical"
+        href="{{ request.build_absolute_uri }}"
+    >
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&amp;display=swap"
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width,minimum-scale=1,initial-scale=1"
+    >
+
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+
+    <script
+        async
+        custom-element="amp-story"
+        src="https://cdn.ampproject.org/v0/amp-story-1.0.js"
+    ></script>
+
+    <style amp-boilerplate>
+        body {
+            animation: -amp-start 8s steps(1, end) 0s 1 normal both;
+        }
+
+        @keyframes -amp-start {
+            from {
+                visibility: hidden;
+            }
+
+            to {
+                visibility: visible;
+            }
+        }
+    </style>
+
+    <noscript>
+        <style amp-boilerplate>
+            body {
+                animation: none;
+            }
+        </style>
+    </noscript>
+
+    <style amp-custom>
+        {% include "stories/includes/story_amp.css" %}
+    </style>
+</head>
+
+<body>
+    <amp-story
+        standalone
+        title="{{ story.title }}"
+        publisher="{{ site_setup.title|default:'Destino Ásia' }}"
+        publisher-logo-src="{{ site_setup.logo.url }}"
+        poster-portrait-src="{{ story.cover.url }}"
+    >
+        {% for slide in story.slides.all %}
+            <amp-story-page 
+            id="slide-{{ slide.id }}"
+            auto-advance-after="7s"
             >
-            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-        </button>
 
-        <div class="story-stage">
-            <header class="story-stage-header">
-                <div class="story-progress" aria-hidden="true">
-                    {% for slide in story.slides.all %}
-                        <div
-                            class="story-progress-track"
-                            data-progress-index="{{ forloop.counter0 }}"
-                        >
-                            <span class="story-progress-bar"></span>
-                        </div>
-                    {% endfor %}
-                </div>
+                {% if forloop.last %}
+                    <!--
+                        Capa usada pelo AMP para gerar o fundo externo borrado
+                        da última página.
+                    -->
+                    <amp-story-grid-layer template="fill">
+                        <amp-img
+                            src="{{ story.cover.url }}"
+                            layout="fill"
+                            object-fit="cover"
+                            alt="{{ story.title }}"
+                        ></amp-img>
+                    </amp-story-grid-layer>
 
-                <div class="story-controls">
-                    <button
-                        class="story-pause-button"
-                        type="button"
-                        aria-label="Pausar story"
-                        aria-pressed="false"
-                        data-story-pause
+                    <!-- Fundo sólido da página final de posts. -->
+                    <amp-story-grid-layer template="fill">
+                        <div 
+                        class="story-related-background"
+                        style="--background-slide-color: {{slide.background_color}}"></div>
+                    </amp-story-grid-layer>
+                {% else %}
+                    <!-- Imagem de fundo dos slides comuns. -->
+                    <amp-story-grid-layer template="fill">
+                        <amp-img
+                            src="{{ slide.image.url }}"
+                            layout="fill"
+                            object-fit="cover"
+                            alt="{{ slide.alt_text }}"
+                        ></amp-img>
+                    </amp-story-grid-layer>
+
+                    <!-- Textos sobre a imagem nos slides comuns -->
+                    <amp-story-grid-layer
+                        template="vertical"
+                        aspect-ratio="412:618"
                     >
-                        <i class="fa-solid fa-pause" aria-hidden="true"></i>
-                    </button>
+                        <div class="story-regions">
 
-                    <button
-                        class="story-share-button"
-                        type="button"
-                        aria-label="Compartilhar story"
-                        data-story-share
-                    >
-                        <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </header>
-            <h1>{{ story.title }}</h1>
+                        {% regroup slide.elements.all|dictsort:"position" by position as element_regions %}
 
-            {% for slide in story.slides.all %}
-                <section  class="story-slide{% if forloop.first %} is-active{% endif %}"
-                    data-slide-index="{{ forloop.counter0 }}"
-                >
-                    <img
-                       class="story-slide-image"
-                        src="{{ slide.image.url }}"
-                        alt="{{ slide.alt_text }}"
-                    >
-
-                    <div class="story-slide-content">
-                        <div class="story-region story-region--top">
-                            {% for element in slide.elements.all %}
-                                {% if element.position == "top" %}
-
-                                    {% if element.element_type == "cta" %}
-                                        <a
+                        {% for region in element_regions %}
+                            <div
+                                class="
+                                    story-region
+                                    story-region--{{ region.grouper }}
+                                "
+                            >
+                                {% for element in region.list %}
+                                    {% if element.element_type != "cta" %}
+                                        <div
                                             class="
                                                 story-element
-                                                story-element--{{ element.position }}
-                                                story-element--cta
-                                                story-element--{{ element.animation }}
+                                                story-element--{{ element.element_type }}
                                             "
-                                            href="{{ element.affiliate_partner.affiliate_url }}"
-                                            target="_blank"
-                                            rel="sponsored nofollow external noopener noreferrer"
-                                            data-animation="{{ element.animation }}"
-                                            data-delay-ms="{{ element.delay_ms }}"
+
+                                            {% if element.animation != "none" %}
+                                                animate-in="{{ element.animation }}"
+                                                animate-in-delay="{{ element.delay_ms }}ms"
+                                                animate-in-duration="{{ element.duration_ms }}ms"
+                                            {% endif %}
+
                                             style="
                                                 --story-text-color: {{ element.variant }};
+                                                --story-font-style: {{ element.font_style }};
+
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
                                                 {% endif %}
+
                                                 {% if element.font_size_rem %}
-                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
+                                                    --story-font-size: {{ element.font_size_rem|unlocalize }}rem;
                                                 {% endif %}
-                                                
+
+                                                {% if element.font_weight %}
+                                                    --story-font-weight: {{ element.font_weight }};
+                                                {% endif %}
                                             "
                                         >
-                                            {{ element.affiliate_partner.button_label }}
-                                        </a>
-                                    {% else %}
-                                    <div
-                                        class="
-                                            story-element
-                                            story-element--{{ element.position }}
-                                            story-element--{{ element.element_type }}
-                                            story-element--{{ element.animation }}
-                                        "
-                                        data-animation="{{ element.animation }}"
-                                        data-delay-ms="{{ element.delay_ms }}"
+                                            {% if element.element_type == "title" %}      
+                                                {% if slide.order == 1 %}
+                                                    <h1>{{ element.text }}</h1>
+                                                {% else %}
+                                                    <h2>{{ element.text }}</h2>
+                                                {% endif %}
+                                            {% else %}
+                                                <p>{{ element.text }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        </div>
+                    </amp-story-grid-layer>
+                {% endif %}
+
+                {% if forloop.last %}
+                    <amp-story-grid-layer
+                        template="vertical"
+                        class="story-related-layer"
+                    >
+                        <section class="story-related-posts">
+                            <div class="story-avatar-frame">
+                                <amp-img
+                                        src="#link_image"
+                                        layout="fill"
+                                        object-fit="cover"
+                                        alt="alt_image"
+                                    >
+                                </amp-img>
+                            </div>
+                            {% for element in slide.elements.all %}
+                                {% if element.element_type == "title"%}
+                                    <h2
                                         style="
                                             --story-text-color: {{ element.variant }};
-                                            --story-font-style: {{element.font_style}};
-                                            {% if element.background_color %}
-                                                --story-background-color: {{ element.background_color }};
-                                            {% endif %}
-                                            {% if element.font_size_rem %}
-                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
-                                            {% endif %}
-                                            {% if element.font_weight %}
-                                                --story-font-weight: {{ element.font_weight }};
-                                            {% endif %}
+                                            --story-background: {{element.background_color}};
+                                            --story-font-size: {{element.font_size_rem|unlocalize }}rem;
+                                            --story-font-weight: {{element.font_weight}};
                                         "
                                     >
                                         {{ element.text }}
-                                    </div>
-                                    {% endif %}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="story-region story-region--center">
-                            {% for element in slide.elements.all %}
-                                {% if element.position == "center" %}
-                                    {% if element.element_type == "cta" %}
-                                        <a
-                                            class="
-                                                story-element
-                                                story-element--{{ element.position }}
-                                                story-element--cta
-                                                story-element--{{ element.animation }}
-                                            "
-                                            href="{{ element.affiliate_partner.affiliate_url }}"
-                                            target="_blank"
-                                            rel="sponsored nofollow external noopener noreferrer"
-                                            data-animation="{{ element.animation }}"
-                                            data-delay-ms="{{ element.delay_ms }}"
-                                            style="
-                                                --story-text-color: {{ element.variant }};
-                                                {% if element.background_color %}
-                                                    --story-background-color: {{ element.background_color }};
-                                                {% endif %}
-                                                {% if element.font_size_rem %}
-                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
-                                                {% endif %}
-                                            "
-                                        >
-                                            {{ element.affiliate_partner.button_label }}
-                                        </a>
-                                    {% else %}
-                                        <div
-                                            class="
-                                                story-element
-                                                story-element--{{ element.position }}
-                                                story-element--{{ element.element_type }}
-                                                story-element--{{ element.animation }}
-                                            "
-                                            data-animation="{{ element.animation }}"
-                                            data-delay-ms="{{ element.delay_ms }}"
-                                            style="
-                                                --story-text-color: {{ element.variant }};
-                                                {% if element.background_color %}
-                                                    --story-background-color: {{ element.background_color }};
-                                                {% endif %}
-                                                {% if element.font_size_rem %}
-                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
-                                                {% endif %}
-                                            "
-                                        >
-                                            {{ element.text }}
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
+                                    </h2>
+                                        {% elif element.element_type == "cta" and element.post %}
+                                    <a
+                                        class="story-related-post-card"
+                                        href="{{ element.post.get_absolute_url }}"
+                                        role="link"
+                                        data-tooltip-text="Abrir artigo"
 
-                        <div class="story-region story-region--bottom">
-                            {% for element in slide.elements.all %}
-                                {% if element.position == "bottom" %}
-                                    {% if element.element_type == "cta" %}
-                                        <a
-                                            class="
-                                                story-element
-                                                story-element--{{ element.position }}
-                                                story-element--cta
-                                                story-element--{{ element.animation }}
-                                            "
-                                            href="{{ element.affiliate_partner.affiliate_url }}"
-                                            target="_blank"
-                                            rel="sponsored nofollow external noopener noreferrer"
-                                            data-animation="{{ element.animation }}"
-                                            data-delay-ms="{{ element.delay_ms }}"
+                                        {% if element.animation != "none" %}
+                                            animate-in="{{ element.animation }}"
+                                            animate-in-delay="{{ element.delay_ms }}ms"
+                                            animate-in-duration="{{ element.duration_ms }}ms"
+                                        {% endif %}
+                                    >
+                                        {% if element.post.cover %}
+                                            <amp-img
+                                                src="{{ element.post.cover.url }}"
+                                                width="800"
+                                                height="450"
+                                                layout="responsive"
+                                                alt="{{ element.post.title }}"
+                                            ></amp-img>
+                                        {% endif %}
+
+                                        <span
                                             style="
-                                                --story-text-color: {{ element.variant }};
-                                                {% if element.background_color %}
-                                                    --story-background-color: {{ element.background_color }};
-                                                {% endif %}
-                                                {% if element.font_size_rem %}
-                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
-                                                {% endif %}
-                                            "
-                                        >
-                                            {{ element.affiliate_partner.button_label }}
-                                        </a>
-                                    {% else %}
-                                        <div
-                                            class="
-                                                story-element
-                                                story-element--{{ element.position }}
-                                                story-element--{{ element.element_type }}
-                                                story-element--{{ element.animation }}
-                                            "
-                                            data-animation="{{ element.animation }}"
-                                            data-delay-ms="{{ element.delay_ms }}"
-                                            style="
-                                                --story-text-color: {{ element.variant }};
-                                                {% if element.background_color %}
-                                                    --story-background-color: {{ element.background_color }};
-                                                {% endif %}
-                                                {% if element.font_size_rem %}
-                                                    --story-font-size: {{element.font_size_rem|unlocalize}}rem;
-                                                {% endif %}
-                                            "
-                                        >
-                                            {{ element.text }}
-                                        </div>
-                                    {% endif %}
-                                {% endif %}  
+                                            --story-text-color: {{ element.variant }};
+                                            --story-font-size: {{element.font_size_rem|unlocalize }}rem;
+                                            --story-font-weight: {{element.font_weight}};
+                                            ">{{ element.post.title }}</span>
+                                    </a>
+                                {% endif %}
                             {% endfor %}
-                        </div>
-                    </div>
-                </section>
-            {% endfor %}
-        </div>
-         <button
-            class="story-navigation story-navigation--next"
-            type="button"
-            aria-label="Avançar para o próximo slide"
-            aria-controls="story-stage"
-            data-story-next
-        >
-            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-        </button>
-    </main>
-{% endblock content %}
-{% block additional_scripts %}
-    <script
-        src="{% static 'blog/javascript/story_detail.js' %}"
-        defer
-    ></script>
-{% endblock additional_scripts %}
+                        </section>
+                    </amp-story-grid-layer>
+                {% endif %}
+
+                <!-- Botão afiliado: precisa ser o último filho da página -->
+                {% for element in slide.elements.all %}
+                    {% if element.element_type == "cta" and element.affiliate_partner %}
+                        <amp-story-page-outlink
+                            layout="nodisplay"
+                            cta-image="{{ element.affiliate_partner.cta_icon.url }}"
+
+                            {% if element.background_color %}
+                                theme="custom"
+                                cta-accent-element="background"
+                                cta-accent-color="{{ element.background_color }}"
+                            {% else %}
+                                theme="light"
+                            {% endif %}
+                        >
+                            <a
+                                href="{{ element.affiliate_partner.affiliate_url }}"
+                                target="_blank"
+                                rel="sponsored nofollow noopener noreferrer"
+                                title="{{ element.text }}"
+                            >
+                                {{ element.text }}
+                            </a>
+                        </amp-story-page-outlink>
+                    {% endif %}
+                {% endfor %}
+
+            </amp-story-page>
+        {% endfor %}
+    </amp-story>
+</body>
+</html>

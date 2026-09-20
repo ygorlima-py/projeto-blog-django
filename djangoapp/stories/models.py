@@ -56,7 +56,10 @@ class StorySlide(models.Model):
     slides in a separate model allows each story to contain any number of
     images without adding a fixed number of image fields to ``Story``.
     """
-
+    hex_color_validator = RegexValidator(
+            regex=r"^#[0-9A-Fa-f]{6}$",
+            message="Use uma cor no formato #RRGGBB.",
+            )
     story = models.ForeignKey(
         Story,
         on_delete=models.CASCADE,
@@ -68,7 +71,12 @@ class StorySlide(models.Model):
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    background_color = models.CharField(
+        max_length=7,
+        default="#ffffff",
+        validators=[hex_color_validator],
+        verbose_name="cor do fundo",
+    )
     class Meta:
         ordering = ("order", "id")
         verbose_name = "slide de story"
@@ -105,10 +113,14 @@ class StoryElement(models.Model):
         BOTTOM = "bottom", "Inferior"
 
     class Animation(models.TextChoices):
-        FADE_UP = "fade-up", "Aparecer de baixo"
-        FADE_LEFT = "fade-left", "Aparecer da esquerda"
-        FADE = "fade", "Aparecer"
         NONE = "none", "Sem animação"
+        FADE_IN = "fade-in", "Aparecer"
+        FLY_IN_BOTTOM = "fly-in-bottom", "Aparecer de baixo"
+        FLY_IN_TOP = "fly-in-top", "Aparecer de cima"
+        FLY_IN_LEFT = "fly-in-left", "Aparecer da esquerda"
+        FLY_IN_RIGHT = "fly-in-right", "Aparecer da direita"
+        SCALE_FADE_UP = "scale-fade-up", "Aparecer aumentando"
+        ZOOM_IN = "zoom-in", "Aproximar"
         
     class FontWeight(models.IntegerChoices):
         THIN = 100, "Thin (100)"
@@ -149,7 +161,7 @@ class StoryElement(models.Model):
         blank=True,
         null=True,
         validators=[
-            MinValueValidator(Decimal("0.50")),
+            MinValueValidator(Decimal("0.10")),
             MaxValueValidator(Decimal("5.00")),
         ],
         verbose_name="tamanho da fonte (rem)",
@@ -193,7 +205,7 @@ class StoryElement(models.Model):
     animation = models.CharField(
         max_length=20,
         choices=Animation.choices,
-        default=Animation.FADE_UP,
+        default=Animation.FLY_IN_BOTTOM,
         verbose_name="animação",
     )
     delay_ms = models.PositiveIntegerField(
@@ -201,6 +213,12 @@ class StoryElement(models.Model):
         verbose_name="atraso (ms)",
         help_text="Atraso antes da animação, em milissegundos.",
     )
+    duration_ms = models.PositiveIntegerField(
+        default=500,
+        verbose_name="duração (ms)",
+        help_text="Duração da animação, em milissegundos."
+    )
+    
     order = models.PositiveIntegerField(default=0, verbose_name="ordem")
     affiliate_partner = models.ForeignKey(
         "affiliates.AffiliatePartner",
@@ -210,6 +228,16 @@ class StoryElement(models.Model):
         null=True,
         verbose_name="parceiro afiliado",
         help_text="Usado quando o elemento for um botão de afiliado.",
+    )
+    
+    post = models.ForeignKey(
+        "blog.Post",
+        on_delete=models.PROTECT,
+        related_name="story_elements",
+        blank=True,
+        null=True,
+        verbose_name="post relacionado",
+        help_text="Usado quando o elemento for um botão de post relacionado."
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -224,18 +252,18 @@ class StoryElement(models.Model):
         super().clean()
 
         if self.element_type == self.ElementType.CTA:
-            if not self.affiliate_partner:
-                raise ValidationError({
-                    "affiliate_partner": (
-                        "Informe um parceiro para elementos do tipo botão."
-                    ),
-                })
-        elif self.affiliate_partner:
-            raise ValidationError({
-                "affiliate_partner": (
-                    "O parceiro afiliado só pode ser usado em botões."
-                ),
-            })
+            has_affiliate = bool(self.affiliate_partner_id)
+            has_post = bool(self.post_id)
+
+            if not has_affiliate and not has_post:
+                raise ValidationError(
+                    "Escolha um parceiro afiliado ou um post."
+                )
+
+            if has_affiliate and has_post:
+                raise ValidationError(
+                    "Escolha somente um destino: afiliado ou post."
+                )
 
         if self.element_type != self.ElementType.CTA and not self.text.strip():
             raise ValidationError({

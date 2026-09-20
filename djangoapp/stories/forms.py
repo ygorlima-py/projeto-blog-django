@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import StoryElement
+from .models import StoryElement, StorySlide
 
 class StoryElementAdminForm(forms.ModelForm):
     use_background_color = forms.BooleanField(
@@ -32,4 +32,12 @@ class StoryElementAdminForm(forms.ModelForm):
 
         return cleaned_data
 
-    
+class StorySlideAdminForm(forms.ModelForm):
+    class Meta:
+        model = StorySlide
+        fields = "__all__"
+        widgets = {
+            "background_color": forms.TextInput(
+                attrs={"type": "color"}
+            ),
+        }
