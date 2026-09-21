@@ -136,6 +136,7 @@
                                             style="
                                                 --story-text-color: {{ element.variant }};
                                                 --story-font-style: {{ element.font_style }};
+                                                --story-spacing-after: {{ element.spacing_after_rem|unlocalize }}rem;
 
                                                 {% if element.background_color %}
                                                     --story-background-color: {{ element.background_color }};
@@ -177,13 +178,14 @@
                         <section class="story-related-posts">
                             <div class="story-avatar-frame">
                                 <amp-img
-                                        src="#link_image"
+                                        class="avatar_image"
+                                        src="{{site_setup.logo.url}}"
                                         layout="fill"
                                         object-fit="cover"
                                         alt="alt_image"
                                     >
                                 </amp-img>
-                            </div>
+                            </div> 
                             {% for element in slide.elements.all %}
                                 {% if element.element_type == "title"%}
                                     <h2

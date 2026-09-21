@@ -11,14 +11,14 @@ amp-story {
     grid-template-rows: repeat(3, minmax(0, 1fr));
     width: 100%;
     height: 100%;
-    padding: 4.5rem 1rem 1.5rem;
+    padding: 0.5rem 1rem 1.5rem;
 }
 
 .story-region {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0rem;
 }
 
 .story-region--top {
@@ -55,6 +55,11 @@ amp-story {
     text-align: center;
     overflow-wrap: anywhere;
     border-radius: 0.15rem;
+    margin-bottom: var(--story-spacing-after, 0.4rem);
+}
+
+.story-element:last-child {
+    margin-bottom: 0;
 }
 
 .story-element h1,
@@ -112,6 +117,10 @@ amp-story-cta-layer {
     background-color: var(--background-slide-color);
 }
 
+.amp-story-grid-layer.story-related-layer {
+    padding: 40px 32px 32px !important;
+}
+
 .story-related-layer {
     padding: 2rem 2rem 1rem;
 }
@@ -127,6 +136,11 @@ amp-story-cta-layer {
     flex-shrink: 0;
     overflow: hidden;
     border-radius: 50%;
+    background-color: #f3e9d4;
+}
+
+.avatar_image{
+    margin: 0.35rem;
 }
 
 .story-related-posts {

@@ -195,6 +195,18 @@ class StoryElement(models.Model):
         default="",
         validators=[hex_color_validator],
         verbose_name="cor de fundo",
+    )  
+    spacing_after_rem = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("9.00")),
+        ],
+        verbose_name="espaço abaixo do elemento (rem)",
+        help_text="Deixe vazio para usar o tamanho padrão de 0.4rem.",
     )
     position = models.CharField(
         max_length=20,

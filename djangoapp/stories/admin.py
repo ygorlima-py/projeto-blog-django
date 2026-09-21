@@ -27,6 +27,7 @@ class StoryElementInline(admin.TabularInline):
         "use_background_color",
         "background_color",
         "position",
+        "spacing_after_rem",
         "animation",
         "delay_ms",
         "duration_ms",
