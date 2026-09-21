@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
 from .models import Story, StoryElement, StorySlide
 from .forms import StoryElementAdminForm, StorySlideAdminForm
@@ -47,6 +48,26 @@ class StoryAdmin(admin.ModelAdmin):
     search_fields = ("title", "slug")
     ordering = ("order", "title")
     inlines = (StorySlideInline,)
+    readonly_fields = ("image_preview",)
+    
+    @admin.display(description="Prévia da imagem de capa")
+    def image_preview(self, obj):
+        if not obj.cover:
+            return "Nenhuma imagem cadastrada."
+        
+        return format_html(
+            '<img src="{}" '
+            'style="'
+            'display:block;'
+            'width:100%;'
+            'max-width:300px;'
+            'height:500px;'
+            'object-fit:contain;'
+            'border-radius:12px;'
+            'background:#f1f1f1;'
+            '">',
+            obj.cover.url,
+        )
 
 
 @admin.register(StorySlide)

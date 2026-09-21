@@ -2949,6 +2949,7 @@ a.post-label:hover {
 
 .landing-stories-swiper .swiper-slide {
     width: 26rem;
+    aspect-ratio: 272.5 / 400;
 }
 
 .landing-story-card {
@@ -2958,12 +2959,29 @@ a.post-label:hover {
     overflow: hidden;
 }
 
-.landing-story-card img {
-    border-radius: 8px;
+.landing-story-card a {
+    position: relative;
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+}
+
+.landing-story-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
     transition: transform 450ms ease;
+}
+
+.landing-stories-empty {
+    flex: 0 0 100%;
+    display: grid;
+    place-items: center;
+    min-height: 25rem;
+    margin: 0;
+    text-align: center;
 }
 
 .landing-story-card:hover img,

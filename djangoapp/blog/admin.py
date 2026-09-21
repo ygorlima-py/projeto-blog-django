@@ -3,8 +3,8 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from blog.models import AuthorProfile, Tag, Category, Page, Post
 from django_summernote.admin import SummernoteModelAdmin
-from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 
 class AuthorProfileInline(admin.StackedInline):
@@ -42,6 +42,26 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {
         "slug": ('name', ),
     }
+    readonly_fields = ("image_preview",)
+    
+    @admin.display(description="Prévia da imagem de capa")
+    def image_preview(self, obj):
+        if not obj.cover_image:
+            return "Nenhuma imagem cadastrada."
+        
+        return format_html(
+            '<img src="{}" '
+            'style="'
+            'display:block;'
+            'width:100%;'
+            'max-width:300px;'
+            'height:500px;'
+            'object-fit:contain;'
+            'border-radius:12px;'
+            'background:#f1f1f1;'
+            '">',
+            obj.cover_image.url,
+        )
 
 
 @admin.register(Page)
@@ -59,7 +79,7 @@ class PageAdmin(SummernoteModelAdmin):
 @admin.register(Post)
 class PostAdmin(SummernoteModelAdmin):
     summernote_fields = ('content',)
-    list_display = 'id', 'title', 'slug', 'is_featured', 'is_published',
+    list_display = 'id', 'title', 'slug', 'is_featured', 'is_published', 'category',
     list_display_links = 'title',
     search_fields = 'id', 'title', 'slug', 'excerpt', 'content',
     list_per_page = 10

@@ -87,6 +87,12 @@ class Category(models.Model):
         verbose_name_plural = 'Categories'
 
     name = models.CharField(max_length=50)
+    cover_image = models.ImageField(
+        upload_to='categories/%Y/%m/',
+        blank=True,
+        default='',
+        verbose_name="Imagem da capa da categoria",
+    )
     slug = models.SlugField(
         unique=True,
         default=None,
@@ -94,11 +100,35 @@ class Category(models.Model):
         blank=True,
         max_length=255,
     )
-
+    
     def save(self, *args, **kwargs):
+        previous_cover_name = None
+
+        if self.pk:
+            previous_cover_name = (
+                type(self).objects
+                .filter(pk=self.pk)
+                .values_list("cover_image", flat=True)
+                .first()
+            )
+
         if not self.slug:
             self.slug = slugify_new(self.name, 3)
-        return super().save(*args, **kwargs)
+
+        result = super().save(*args, **kwargs)
+
+        if (
+            self.cover_image
+            and previous_cover_name != self.cover_image.name
+        ):
+            resize_image(
+                self.cover_image,
+                new_width=1600,
+                optimize=True,
+                quality=80,
+            )
+
+        return result
     
     def __str__(self) -> str:
         return self.name

@@ -113,35 +113,19 @@
 
                 <div class="landing-destinations-swiper swiper">
                     <div class="swiper-wrapper">
-                        <div class="swiper-slide">
-                            <a href="{% url 'blog:category' 'tailandia' %}" class="landing-destination-card">
-                                <img src="https://images.pexels.com/photos/16963635/pexels-photo-16963635.jpeg" alt="Tailândia">
-                                <strong>TAILÂNDIA</strong>
-                            </a>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <a href="{% url 'blog:category' 'vietna' %}" class="landing-destination-card">
-                                <img src="https://images.pexels.com/photos/2131935/pexels-photo-2131935.jpeg" alt="Vietnã">
-                                <strong>VIETNÃ</strong>
-                            </a>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <a href="{% url 'blog:category' 'vietna' %}" class="landing-destination-card">
-                                <img src="https://images.pexels.com/photos/7235901/pexels-photo-7235901.jpeg" alt="Vietnã">
-                                <strong>VISTO</strong>
-                            </a>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <a href="{% url 'blog:category' 'vietna' %}" class="landing-destination-card">
-                                <img src="https://images.pexels.com/photos/5405596/pexels-photo-5405596.jpeg" alt="Vietnã">
-                                <strong>VISTO</strong>
-                            </a>
-                        </div>
+                        {% for category in navigation_categories %}
+                            <div class="swiper-slide">
+                                <a href="{% url 'blog:category' slug=category.slug %}" class="landing-destination-card">
+                                    {% if category.cover_image %}
+                                        <img src="{{category.cover_image.url}}" alt="{{category.name}}">       
+                                    {% else %}
+                                        <img src="" alt="{{category.name}}">
+                                    {% endif %}
+                                    <strong>{{category.name}}</strong>
+                                </a>
+                            </div> 
+                        {% endfor %}
                     </div>
-
                     <button class="landing-destinations-prev">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
@@ -196,74 +180,27 @@
 
                 <div class="landing-stories-swiper swiper">
                     <div class="landing-stories-cards swiper-wrapper">
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-1/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum, dolor sit amet consectetur adipisicing elit.</strong>
-                                </a>
-                            </article>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-2/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit amet consectetur adipisicing.</strong>
-                                </a>
-                            </article>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-3/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Commodi?</strong>
-                                </a>
-                            </article>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-4/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit amet consectetur adipisicing.</strong>
-                                </a>
-                            </article>
-                        </div>
-
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-5/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Provident!</strong>
-                                </a>
-                            </article>
-                        </div>
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-6/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</strong>
-                                </a>
-                            </article>
-                        </div>
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-7/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit amet consectetur adipisicing.</strong>
-                                </a>
-                            </article>
-                        </div>
-                        <div class="swiper-slide">
-                            <article class="landing-story-card">
-                                <a href="#">
-                                    <img src="https://picsum.photos/seed/story-8/400/600" alt="Imagem temporária">
-                                    <strong>Lorem ipsum dolor sit, amet consectetur adipisicing elit.</strong>
-                                </a>
-                            </article>
-                        </div>
+                        {% for story in stories %}
+                            {% if story.is_published %}
+                                <div class="swiper-slide">
+                                    <article class="landing-story-card">
+                                        <a 
+                                            href="{%url 'stories:detail' slug=story.slug %}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            >
+                                            <img 
+                                                src="{{story.cover.url}}"
+                                                alt={{story.title}}
+                                            >
+                                            <strong>{{story.title}}</strong>
+                                        </a>
+                                    </article>
+                                </div>
+                            {% endif %}
+                        {%empty%}
+                            <p class="landing-stories-empty">Nenhum story publicado.</p>
+                        {% endfor %}
                     </div>
 
                     <button class="landing-stories-prev" type="button" aria-label="Story anterior">
@@ -277,7 +214,7 @@
                     <div class="landing-stories-pagination swiper-pagination"></div>
                 </div>
                     <div class="landing-stories-button">
-                        <a href="{% url 'blog:index' %}" class="landing-intro-button">
+                        <a href="{% url 'stories:list' %}" class="landing-intro-button">
                             CLIQUE PARA CONHECER MAIS HISTÓRIAS
                         </a>
                     </div>
