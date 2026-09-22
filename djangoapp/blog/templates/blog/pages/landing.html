@@ -15,7 +15,7 @@
     <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}?v=2">
     <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -219,7 +219,39 @@
                         </a>
                     </div>
             </section>
+            <section class="landing-last-posts-section">
+                <h2 class="landing-last-posts-title">
+                    ÚLTIMOS POSTS
+                </h2>
+                <div class="landing-post-grid-cards">
+                    {% for post in posts|slice:":8" %}
+                        <article class="landing-last-post-card">
+                            <div class="landing-last-post-card-media">
+                                <a href="{%url "blog:post" slug=post.slug %}">
+                                <img 
+                                    src="{{post.cover.url}}"
+                                    alt="{{post.cover_caption}}">
+                                </a>
+                            </div>
+                            <a 
+                            class="landing-last-post-card-title"
+                            href="{%url 'blog:post' slug=post.slug %}">
+                                <h3>{{post.title}}</h3>
+                            </a>
+                        </article>
+                    {% endfor %}
+                    </div>
+                    <div class="landing-last-post-button">
+                        <a href="{% url 'blog:index' %}" class="landing-intro-button">
+                            CLIQUE PARA VER MAIS POSTS
+                        </a>
+                    </div>
+            </section>
         </main>
+
+        {% if site_setup.show_footer %}
+            {% include "blog/partials/_footer.html" %}
+        {% endif %}
     </div>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="{% static 'blog/javascript/landing-swipper.js' %}"></script>

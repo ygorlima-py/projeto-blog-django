@@ -302,7 +302,7 @@ class LandingPageView(TemplateView):
         
         context["affiliate_categories"] = AffiliateCategory.objects.available()
         context["stories"] = Story.objects.filter(is_published=True).order_by("order", "title")
-        
+        context["posts"] = Post.objects.filter(is_published=True).order_by("-created_at")[:8]
         return context
     
 
