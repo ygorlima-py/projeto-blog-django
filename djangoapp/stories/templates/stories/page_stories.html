@@ -1,0 +1,102 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block additional_head %}
+<link
+        rel="stylesheet"
+        href="{% static 'stories/css/page_stories.css' %}"
+    >
+{% endblock additional_head %}
+
+{% block content %}
+    <main id="main-content" class="stories-page">
+        <header class="stories-page-header">
+            {% if listing_eyebrow %}
+                <p class="stories-page-eyebrow">{{ listing_eyebrow }}</p>
+            {% endif %}
+            {% if listing_description %}
+                <p class="stories-page-description">
+                    {{ listing_description }}
+                </p>
+            {% endif %}
+        </header>
+
+        <section
+            class="stories-page-content"
+            aria-labelledby="stories-page-content-title"
+        >
+            <h1
+                id="stories-page-content-title"
+                class="stories-page-content-title"
+            >
+                WEBSTORIES
+            </h1>
+
+            <div class="stories-main">
+                <div class="stories-list">
+                    {% for story in stories %}
+                        {% if story.is_published %}
+                            <article class="stories-card">
+                                <a
+                                    class="stories-card-link"
+                                    href="{% url 'stories:detail' slug=story.slug %}"
+                                >
+                                    {% if story.cover %}
+                                        <img
+                                            class="stories-card-image"
+                                            src="{{ story.cover.url }}"
+                                            alt="{{ story.title }}"
+                                            loading="lazy"
+                                        >
+                                    {% endif %}
+
+                                    <h3 class="stories-card-title">
+                                        {{ story.title }}
+                                    </h3>
+                                </a>
+                            </article>
+                        {% endif %}
+                    {% empty %}
+                        <p class="stories-empty">
+                            Nenhum story publicado.
+                        </p>
+                    {% endfor %}
+                </div>
+
+                <aside class="stories-sponsor" aria-label="Patrocínio">
+                    <span class="sponsor-title">
+                        APROVEITE NOSSOS DESCONTOS
+                    </span>
+                    <div class="stories-sponsor-description">
+                        <p>
+                            Economize na hora de planejar
+                            a sua viagem! Veja abaixo nossos
+                            parceiros e ganhe descontos especiais!
+                        </p>
+                    </div>
+                    <div class="sponsor-grid">
+                        {% for category in affiliate_categories %}
+                            <div>
+                                <a class="landing-affiliates-categories" href="{% url 'affiliates:category' category.slug %}">
+                                    {% if category.icon %}
+                                    <div class="landing-affiliates-categories-circle">
+                                        <span
+                                            class="landing-affiliate-icon"
+                                            aria-hidden="true"
+                                            style="--icon-url: url('{{ category.icon.url }}');"
+                                        >
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    <span style="font-weight: 500;">
+                                        {{ category.name }}
+                                    </span>
+                                </a>
+                            </div>
+                        {% endfor %}                   
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

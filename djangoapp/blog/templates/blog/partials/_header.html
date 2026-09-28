@@ -1,6 +1,6 @@
 <header class="site-navigation-bar">
     <div class="site-navigation-shell section-content-wide">
-        <a href="{% url 'blog:index' %}" class="site-brand" aria-label="Página inicial de {{ site_setup.title }}">
+        <a href="{% url 'blog:landing' %}" class="site-brand" aria-label="Página inicial de {{ site_setup.title }}">
             {% if site_setup.logo %}
                 <img class="site-brand-logo" src="{{ site_setup.logo.url }}" alt="" aria-hidden="true">
                 <span class="site-brand-name">{{ site_setup.title }}</span>
@@ -74,20 +74,3 @@
         </div>
     </div>
 </header>
-
-{% if request.resolver_match.url_name == 'index' %}
-    <section class="site-hero" aria-labelledby="site-hero-title">
-        <div class="site-hero-decoration" aria-hidden="true"></div>
-        <div class="site-hero-content section-content-wide">
-            <span class="site-hero-route" aria-hidden="true">
-                <i></i>
-                <span></span>
-                <i></i>
-            </span>
-            <h1 id="site-hero-title">{{ site_setup.title }}</h1>
-            {% if site_setup.show_description and site_setup.description %}
-                <p>{{ site_setup.description }}</p>
-            {% endif %}
-        </div>
-    </section>
-{% endif %}

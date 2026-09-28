@@ -1,0 +1,350 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ meta_description }}">
+
+    <title>{{seo_title}} | {{ site_setup.title|default:"Ásia de Perto" }}</title>
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    <meta
+        name="robots"
+        content="index, follow, max-image-preview:large"
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="{{ site_setup.title }}">
+    <meta property="og:title" content="{{ seo_title }}">
+    <meta property="og:description" content="{{ meta_description }}">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:image" content="{{ social_image_url }}">
+    <meta property="og:image:alt" content="{{ seo_title }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ seo_title }}">
+    <meta name="twitter:description" content="{{ meta_description }}">
+    <meta name="twitter:image" content="{{ social_image_url }}">
+
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+    >
+    <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Montserrat:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+    >
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'blog/css/components/buttons.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/components/affiliate-categories.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/components/cookie-consent.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/components/footer.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/components/header.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/pages/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'blog/css/remedy.css' %}">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "WebSite",
+                    "@id": "{{ canonical_url|escapejs }}#website",
+                    "url": "{{ canonical_url|escapejs }}",
+                    "name": "{{ site_setup.title|escapejs }}",
+                    "description": "{{ meta_description|escapejs }}",
+                    "inLanguage": "pt-BR",
+                    "publisher": {
+                        "@id": "{{ canonical_url|escapejs }}#organization"
+                    }
+                },
+                {
+                    "@type": "Organization",
+                    "@id": "{{ canonical_url|escapejs }}#organization",
+                    "name": "{{ site_setup.title|escapejs }}",
+                    "url": "{{ canonical_url|escapejs }}",
+                    "description": "{{ site_setup.description|escapejs }}",
+
+                    {% if organization_logo_url %}
+                        "logo": {
+                            "@type": "ImageObject",
+                            "url": "{{ organization_logo_url|escapejs }}"
+                        },
+                    {% endif %}
+
+                    "founder": {
+                        "@id": "{{ canonical_url|escapejs }}#author"
+                    },
+                    "sameAs": [
+                        {% for social_link in site_setup.social_links.all %}
+                            "{{ social_link.url|escapejs }}"{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                },
+                {
+                    "@type": "Person",
+                    "@id": "{{ canonical_url|escapejs }}#author",
+                    "name": "Ygor",
+                    "url": "{{ about_url|escapejs }}",
+                    "worksFor": {
+                        "@id": "{{ canonical_url|escapejs }}#organization"
+                    }
+                }
+            ]
+        }
+    </script>
+</head>
+
+<body id="top" class="site-body landing-page">
+    <a class="skip-link" href="#main-content">
+        Pular para o conteúdo
+    </a>
+
+    <div class="blog-wrapper">
+        {% include "blog/partials/_header.html" %}
+        <main id="main-content" class="landing-content">
+            <section class="landing-image-section" aria-label="Busca de destinos">
+                <div class="landing-hero-overlay"></div>
+
+                <div class="landing-search-content">
+                    <h1>Bem vindo ao Sudeste Asiático</h1>
+                    <form
+                        class="landing-search-form"
+                        action="{% url 'blog:search' %}"
+                        method="get"
+                    >
+                        <div class="landing-search-input">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                                <path d="m15.5 15.5 5 5"></path>
+                            </svg>
+
+                            <label for="landing-search" class="sr-only">
+                                Bora ver a Ásia de perto?
+                            </label>
+
+                            <input
+                                type="search"
+                                id="landing-search"
+                                name="search"
+                                placeholder="Para onde você quer ir?"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit">
+                            <div>
+                                Pesquisar
+                            </div>
+                        </button>
+                    </form>
+                </div>
+            </section>
+            <section class="landing-intro" aria-label="landing-intro">
+                <div class="landing-intro-shell section-content-wide">
+
+                    <div class="landing-intro-media">
+                        <img
+                            class="landing-intro-collage"
+                            src="{% static 'blog/images/landing_presentation.png' %}"
+                            alt="Composição de fotos de viagens"
+                        >
+                    </div>
+
+                    <div class="landing-intro-content">
+                        <div class="site-brand" aria-label="Página inicial de {{ site_setup.title }}">
+                            {% if site_setup.logo %}
+                                <img class="site-brand-logo" src="{{ site_setup.logo.url }}" alt="" aria-hidden="true">
+                                <span class="landing-intro-site-brand-name">{{ site_setup.title }}</span>
+                            {% else %}
+                                <span class="landing-intro-site-brand-name">{{ site_setup.title}}</span>   
+                            {% endif %}
+                        </div>
+                        <div class="landing-intro-description">
+                            <p>
+                                Fala Pessoal! Aqui é o Ygor. Sou Engenheiro Agrônomo, 
+                                Engenheiro de Software e criador de conteúdo digital.
+                            </p>
+                            <br>
+                            <p>
+                                A mais de um ano moro na Tailândia e Viajo pela Ásia,
+                                aqui eu documento toda minha jornada, perrengues, dicas
+                                realmente vivida.
+                            </p>
+                        </div>
+                        <div class="landing-intro-buton-know-history">
+                            <a href="{% url 'blog:page' slug='sobre' %}" class="landing-intro-button">
+                                CLIQUE PARA CONHECER NOSSA HISTÓRIA
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <section class="landing-explore-section" aria-label="landing-explore-asia">
+                <h2 class="landing-explore-title">EXPLORE A ÁSIA</h2>
+
+                <div class="landing-destinations-swiper swiper">
+                    <div class="swiper-wrapper">
+                        {% for category in navigation_categories %}
+                            <div class="swiper-slide">
+                                <a href="{% url 'blog:category' slug=category.slug %}" class="landing-destination-card">
+                                    {% if category.cover_image %}
+                                        <img src="{{category.cover_image.url}}" alt="{{category.name}}">       
+                                    {% else %}
+                                        <img src="" alt="{{category.name}}">
+                                    {% endif %}
+                                    <strong>{{category.name}}</strong>
+                                </a>
+                            </div> 
+                        {% endfor %}
+                    </div>
+                    <button class="landing-destinations-prev">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button class="landing-destinations-next">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div class="landing-destinations-pagination"></div>
+                </div>
+            </section>
+            <section class="landing-afiliates" aria-label="landing-afiliates">
+                  <div class="landing-affiliates-heading">
+                    <h2 id="landing-affiliates-title">
+                        DESCONTOS ÚNICOS<br>
+                        DO ÁSIA DE PERTO
+                    </h2>
+                </div>
+
+                <div class="landing-affiliates-content">
+                    <div class="landing-affiliates-description">
+                        <p>
+                            Descubra as ferramentas que eu e a maioria dos nômades digitais usamos para economizar durante nossas viagens pela Ásia.
+                        </p>
+                    </div>
+
+                    <ul>
+                        {% for category in affiliate_categories %}
+                            <li >
+                                <a class="landing-affiliates-categories" href="{% url 'affiliates:category' category.slug %}">
+                                    {% if category.icon %}
+                                    <div class="landing-affiliates-categories-circle">
+                                        <span
+                                            class="landing-affiliate-icon"
+                                            aria-hidden="true"
+                                            style="--icon-url: url('{{ category.icon.url }}');"
+                                        >
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    <span>{{ category.name }}</span>
+                                </a>
+                            </li>
+                    {% empty %}
+                        <li>Nenhuma categoria disponível.</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </section>
+            <section class="landing-stories-section" aria-labelledby="landing-stories-title">
+                <h2 id="landing-stories-title" class="landing-stories-title">
+                    WEBSTORIES
+                </h2>
+
+                <div class="landing-stories-swiper swiper">
+                    <div class="landing-stories-cards swiper-wrapper">
+                        {% for story in stories %}
+                            {% if story.is_published %}
+                                <div class="swiper-slide">
+                                    <article class="landing-story-card">
+                                        <a 
+                                            href="{%url 'stories:detail' slug=story.slug %}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            >
+                                            <img
+                                                src="{{ story.cover.url }}"
+                                                alt="{{ story.title }}"
+                                                width="545"
+                                                height="800"
+                                                loading="lazy"
+                                                decoding="async"
+                                            >
+                                            <h3 class="landing-story-card-title">
+                                                {{story.title}}
+                                            </h3>
+                                        </a>
+                                    </article>
+                                </div>
+                            {% endif %}
+                        {%empty%}
+                            <p class="landing-stories-empty">Nenhum story publicado.</p>
+                        {% endfor %}
+                    </div>
+
+                    <button class="landing-stories-prev" type="button" aria-label="Story anterior">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+
+                    <button class="landing-stories-next" type="button" aria-label="Próxima story">
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="landing-stories-pagination swiper-pagination"></div>
+                </div>
+                    <div class="landing-stories-button">
+                        <a href="{% url 'stories:list' %}" class="landing-intro-button">
+                            VER TODOS OS STORIES
+                        </a>
+                    </div>
+            </section>
+            <section class="landing-last-posts-section">
+                <h2 class="landing-last-posts-title">
+                    ÚLTIMOS POSTS
+                </h2>
+                <div class="landing-post-grid-cards">
+                    {% for post in posts|slice:":8" %}
+                        <article class="landing-last-post-card">
+                            <div class="landing-last-post-card-media">
+                                <a href="{%url "blog:post" slug=post.slug %}">
+                                <img
+                                    src="{{ post.cover.url }}"
+                                    alt="{{ post.cover_caption|default:post.title }}"
+                                    width="800"
+                                    height="450"
+                                    loading="lazy"
+                                    decoding="async"
+                                    >
+                                </a>
+                            </div>
+                            <a 
+                            class="landing-last-post-card-title"
+                            href="{%url 'blog:post' slug=post.slug %}">
+                                <h3>{{post.title}}</h3>
+                            </a>
+                        </article>
+                    {% endfor %}
+                    </div>
+                    <div class="landing-last-post-button">
+                        <a href="{% url 'blog:index' %}" class="landing-intro-button">
+                            VER TODOS OS POSTS
+                        </a>
+                    </div>
+            </section>
+        </main>
+
+        {% if site_setup.show_footer %}
+            {% include "blog/partials/_footer.html" %}
+        {% endif %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="{% static 'blog/javascript/landing-swipper.js' %}"></script>
+</body>
+</html>

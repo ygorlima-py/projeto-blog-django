@@ -1,0 +1,268 @@
+{% load l10n %}
+
+<!doctype html>
+<html amp lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+
+    <title>{{ story.title }}</title>
+
+    <link
+        rel="canonical"
+        href="{{ request.build_absolute_uri }}"
+    >
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&amp;display=swap"
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width,minimum-scale=1,initial-scale=1"
+    >
+
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+
+    <script
+        async
+        custom-element="amp-story"
+        src="https://cdn.ampproject.org/v0/amp-story-1.0.js"
+    ></script>
+
+    <style amp-boilerplate>
+        body {
+            animation: -amp-start 8s steps(1, end) 0s 1 normal both;
+        }
+
+        @keyframes -amp-start {
+            from {
+                visibility: hidden;
+            }
+
+            to {
+                visibility: visible;
+            }
+        }
+    </style>
+
+    <noscript>
+        <style amp-boilerplate>
+            body {
+                animation: none;
+            }
+        </style>
+    </noscript>
+
+    <style amp-custom>
+        {% include "stories/includes/story_amp.css" %}
+    </style>
+</head>
+
+<body>
+    <amp-story
+        standalone
+        title="{{ story.title }}"
+        publisher="{{ site_setup.title|default:'Destino Ásia' }}"
+        publisher-logo-src="{{ site_setup.logo.url }}"
+        poster-portrait-src="{{ story.cover.url }}"
+    >
+        {% for slide in story.slides.all %}
+            <amp-story-page 
+            id="slide-{{ slide.id }}"
+            auto-advance-after="7s"
+            >
+
+                {% if forloop.last %}
+                    <!--
+                        Capa usada pelo AMP para gerar o fundo externo borrado
+                        da última página.
+                    -->
+                    <amp-story-grid-layer template="fill">
+                        <amp-img
+                            src="{{ story.cover.url }}"
+                            layout="fill"
+                            object-fit="cover"
+                            alt="{{ story.title }}"
+                        ></amp-img>
+                    </amp-story-grid-layer>
+
+                    <!-- Fundo sólido da página final de posts. -->
+                    <amp-story-grid-layer template="fill">
+                        <div 
+                        class="story-related-background"
+                        style="--background-slide-color: {{slide.background_color}}"></div>
+                    </amp-story-grid-layer>
+                {% else %}
+                    <!-- Imagem de fundo dos slides comuns. -->
+                    <amp-story-grid-layer template="fill">
+                        <amp-img
+                            src="{{ slide.image.url }}"
+                            layout="fill"
+                            object-fit="cover"
+                            alt="{{ slide.alt_text }}"
+                        ></amp-img>
+                    </amp-story-grid-layer>
+
+                    <!-- Textos sobre a imagem nos slides comuns -->
+                    <amp-story-grid-layer
+                        template="vertical"
+                        aspect-ratio="412:618"
+                    >
+                        <div class="story-regions">
+
+                        {% regroup slide.elements.all|dictsort:"position" by position as element_regions %}
+
+                        {% for region in element_regions %}
+                            <div
+                                class="
+                                    story-region
+                                    story-region--{{ region.grouper }}
+                                "
+                            >
+                                {% for element in region.list %}
+                                    {% if element.element_type != "cta" %}
+                                        <div
+                                            class="
+                                                story-element
+                                                story-element--{{ element.element_type }}
+                                            "
+
+                                            {% if element.animation != "none" %}
+                                                animate-in="{{ element.animation }}"
+                                                animate-in-delay="{{ element.delay_ms }}ms"
+                                                animate-in-duration="{{ element.duration_ms }}ms"
+                                            {% endif %}
+
+                                            style="
+                                                --story-text-color: {{ element.variant }};
+                                                --story-font-style: {{ element.font_style }};
+                                                --story-spacing-after: {{ element.spacing_after_rem|unlocalize }}rem;
+
+                                                {% if element.background_color %}
+                                                    --story-background-color: {{ element.background_color }};
+                                                {% endif %}
+
+                                                {% if element.font_size_rem %}
+                                                    --story-font-size: {{ element.font_size_rem|unlocalize }}rem;
+                                                {% endif %}
+
+                                                {% if element.font_weight %}
+                                                    --story-font-weight: {{ element.font_weight }};
+                                                {% endif %}
+                                            "
+                                        >
+                                            {% if element.element_type == "title" %}      
+                                                {% if slide.order == 1 %}
+                                                    <h1>{{ element.text }}</h1>
+                                                {% else %}
+                                                    <h2>{{ element.text }}</h2>
+                                                {% endif %}
+                                            {% else %}
+                                                <p>{{ element.text }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        </div>
+                    </amp-story-grid-layer>
+                {% endif %}
+
+                {% if forloop.last %}
+                    <amp-story-grid-layer
+                        template="vertical"
+                        class="story-related-layer"
+                    >
+                        <section class="story-related-posts">
+                            <div class="story-avatar-frame">
+                                <amp-img
+                                        class="avatar_image"
+                                        src="{{site_setup.logo.url}}"
+                                        layout="fill"
+                                        object-fit="cover"
+                                        alt="alt_image"
+                                    >
+                                </amp-img>
+                            </div> 
+                            {% for element in slide.elements.all %}
+                                {% if element.element_type == "title"%}
+                                    <h2
+                                        style="
+                                            --story-text-color: {{ element.variant }};
+                                            --story-background: {{element.background_color}};
+                                            --story-font-size: {{element.font_size_rem|unlocalize }}rem;
+                                            --story-font-weight: {{element.font_weight}};
+                                        "
+                                    >
+                                        {{ element.text }}
+                                    </h2>
+                                        {% elif element.element_type == "cta" and element.post %}
+                                    <a
+                                        class="story-related-post-card"
+                                        href="{{ element.post.get_absolute_url }}"
+                                        role="link"
+                                        data-tooltip-text="Abrir artigo"
+
+                                        {% if element.animation != "none" %}
+                                            animate-in="{{ element.animation }}"
+                                            animate-in-delay="{{ element.delay_ms }}ms"
+                                            animate-in-duration="{{ element.duration_ms }}ms"
+                                        {% endif %}
+                                    >
+                                        {% if element.post.cover %}
+                                            <amp-img
+                                                src="{{ element.post.cover.url }}"
+                                                width="800"
+                                                height="450"
+                                                layout="responsive"
+                                                alt="{{ element.post.title }}"
+                                            ></amp-img>
+                                        {% endif %}
+
+                                        <span
+                                            style="
+                                            --story-text-color: {{ element.variant }};
+                                            --story-font-size: {{element.font_size_rem|unlocalize }}rem;
+                                            --story-font-weight: {{element.font_weight}};
+                                            ">{{ element.post.title }}</span>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </section>
+                    </amp-story-grid-layer>
+                {% endif %}
+
+                <!-- Botão afiliado: precisa ser o último filho da página -->
+                {% for element in slide.elements.all %}
+                    {% if element.element_type == "cta" and element.affiliate_partner %}
+                        <amp-story-page-outlink
+                            layout="nodisplay"
+                            cta-image="{{ element.affiliate_partner.cta_icon.url }}"
+
+                            {% if element.background_color %}
+                                theme="custom"
+                                cta-accent-element="background"
+                                cta-accent-color="{{ element.background_color }}"
+                            {% else %}
+                                theme="light"
+                            {% endif %}
+                        >
+                            <a
+                                href="{{ element.affiliate_partner.affiliate_url }}"
+                                target="_blank"
+                                rel="sponsored nofollow noopener noreferrer"
+                                title="{{ element.text }}"
+                            >
+                                {{ element.text }}
+                            </a>
+                        </amp-story-page-outlink>
+                    {% endif %}
+                {% endfor %}
+
+            </amp-story-page>
+        {% endfor %}
+    </amp-story>
+</body>
+</html>

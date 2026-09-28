@@ -187,7 +187,7 @@ class SiteSetup(models.Model):
         help_text='Envie o logo completo em PNG, de preferência com fundo transparente.',
         validators=[validate_png],
     )
-
+    
     def save(self, *args, **kwargs):
         current_favicon_name = str(self.favicon.name)
         current_logo_name = str(self.logo.name)

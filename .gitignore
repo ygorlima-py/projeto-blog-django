@@ -141,7 +141,9 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
-
 deploy.md
 cookies.md
 .vscode
+
+
+commands.md

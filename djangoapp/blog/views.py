@@ -2,8 +2,6 @@ import json
 from typing import Any
 
 from django.shortcuts import render, redirect
-from blog.models import Post, Page
-from blog.seo import build_canonical_url
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
@@ -12,8 +10,14 @@ from django.utils.html import strip_tags
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.db.models.query import QuerySet
+from django.views.generic.base import TemplateView
+from django.templatetags.static import static
 
+from blog.models import Post, Page
+from blog.seo import build_canonical_url
 from site_setup.models import SiteSetup
+from affiliates.models import AffiliateCategory
+from stories.models import Story
 
 
 '''
@@ -289,3 +293,46 @@ class PostDetailView(DetailView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter(is_published=True)
+
+class LandingPageView(TemplateView):
+    template_name = "blog/pages/landing.html"
+            
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        
+        site_setup = SiteSetup.objects.order_by("-id").first()
+
+        
+        context["affiliate_categories"] = AffiliateCategory.objects.available()
+        context["stories"] = Story.objects.filter(is_published=True).order_by("order", "title")
+        context["posts"] = Post.objects.filter(is_published=True).order_by("-created_at")[:8]
+        context["social_image_url"] = self.request.build_absolute_uri(
+            static("blog/images/landing_picture.jpg")
+        )
+        
+        context["about_url"] = self.request.build_absolute_uri(
+            reverse("blog:page", kwargs={"slug": "sobre"})
+        )
+        
+        context["organization_logo_url"] = (
+            self.request.build_absolute_uri(site_setup.logo.url)
+            if site_setup and site_setup.logo
+            else ""
+        )
+        
+        context.update({
+            "seo_title": "Viajar e morar na Ásia: roteiros e dicas",
+            "meta_description": (
+                "Roteiros, destinos, custos e dicas práticas de quem mora "
+                "na Ásia para você viajar, planejar sua mudança e entender "
+                "como é viver por aqui."
+            ),
+            "canonical_url": build_canonical_url(
+                self.request,
+                reverse("blog:landing"),
+            ),
+        })
+        return context
+
+
+    

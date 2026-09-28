@@ -1,9 +1,11 @@
 from urllib.parse import urlsplit
+from pathlib import Path
 
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import strip_tags
 
+from utils.images import create_square_icon
 from site_setup.validators import validate_svg
 
 
@@ -108,6 +110,12 @@ class AffiliatePartner(models.Model):
         upload_to='affiliates/%Y/%m/',
         verbose_name='imagem',
     )
+    cta_icon = models.ImageField(
+        upload_to="affiliates/cta-icons/%Y/%m/",
+        blank=True,
+        editable=False, 
+        verbose_name="ícone do CTA",
+    )
     image_alt = models.CharField(
         max_length=150,
         verbose_name='texto alternativo da imagem',
@@ -133,6 +141,27 @@ class AffiliatePartner(models.Model):
         ordering = ('order', 'name')
         verbose_name = 'parceiro afiliado'
         verbose_name_plural = 'parceiros afiliados'
+        
+    def save(self, *args, **kwargs):
+        image_was_uploaded = (
+            self.image
+            and not getattr(self.image, "_committed", True)
+        )
+
+        if self.image and (image_was_uploaded or not self.cta_icon):
+            icon = create_square_icon(self.image, size=96)
+            image_name = Path(self.image.name).stem
+            
+            if self.cta_icon:
+                self.cta_icon.delete(save=False)
+
+            self.cta_icon.save(
+                f"{image_name}-cta.webp",
+                icon,
+                save=False,
+            )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

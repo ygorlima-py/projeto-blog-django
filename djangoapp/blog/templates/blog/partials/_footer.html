@@ -19,6 +19,28 @@
             {% if site_setup.show_description and site_setup.description %}
                 <p>{{ site_setup.description }}</p>
             {% endif %}
+
+            {% if site_setup.social_links.exists %}
+                <nav class="footer-social" aria-label="Redes sociais">
+                    <p>Acompanhe a gente nas redes</p>
+                    <ul>
+                        {% for social_link in site_setup.social_links.all %}
+                            <li>
+                                <a
+                                    href="{{ social_link.url }}"
+                                    aria-label="{{ social_link.display_name }}"
+                                    title="{{ social_link.display_name }}"
+                                    {% if social_link.new_tab %}
+                                    target="_blank" rel="noopener noreferrer"
+                                    {% endif %}
+                                >
+                                    <span class="{{ social_link.icon_class }}" aria-hidden="true"></span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            {% endif %}
         </div>
 
         {% if site_setup.show_menu %}
@@ -26,7 +48,7 @@
                 <nav class="footer-navigation" aria-label="Navegação do rodapé">
                     <div class="footer-navigation-grid">
                         {% for section in footer_sections %}
-                            {% if section.footer_links %}
+                            {% if section.footer_links and section.title != "Privacidade" %}
                                 <div class="footer-navigation-group">
                                     <p>{{ section.title }}</p>
                                     <ul>
@@ -63,27 +85,23 @@
             {% endif %}
         {% endif %}
 
-        {% if site_setup.social_links.exists %}
-            <nav class="footer-social" aria-label="Redes sociais">
-                <p>Acompanhe a gente nas redes</p>
-                <ul>
-                    {% for social_link in site_setup.social_links.all %}
-                        <li>
-                            <a
-                                href="{{ social_link.url }}"
-                                aria-label="{{ social_link.display_name }}"
-                                title="{{ social_link.display_name }}"
-                                {% if social_link.new_tab %}
-                                target="_blank" rel="noopener noreferrer"
-                                {% endif %}
-                            >
-                                <span class="{{ social_link.icon_class }}" aria-hidden="true"></span>
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
-        {% endif %}
+        {% for section in footer_sections %}
+            {% if section.footer_links and section.title == "Privacidade" %}
+                <nav class="footer-navigation-group footer-privacy" aria-label="Privacidade">
+                    <p>{{ section.title }}</p>
+                    <ul>
+                        {% for link in section.footer_links %}
+                            <li>
+                                <a
+                                    href="{{ link.url_or_path }}"
+                                    {% if link.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                >{{ link.text }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% endfor %}
     </div>
 
     <div class="site-footer-bottom section-content-wide">

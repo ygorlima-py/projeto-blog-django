@@ -64,7 +64,7 @@ class PublicBlogViewsTests(TestCase):
         )
         self.assertContains(
             response,
-            '<link rel="canonical" href="http://testserver/">',
+            '<link rel="canonical" href="http://testserver/blog/">',
             html=True,
         )
         self.assertContains(
