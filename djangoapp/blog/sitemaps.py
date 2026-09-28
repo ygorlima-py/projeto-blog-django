@@ -9,7 +9,11 @@ class StaticSitemap(Sitemap):
     priority = 1.0
 
     def items(self):
-        return ['blog:index']
+        return [
+            'blog:landing',
+            'blog:index',
+            'stories:list',
+            ]
 
     def location(self, item):
         return reverse(item)
@@ -18,7 +22,7 @@ class StaticSitemap(Sitemap):
 class PostSitemap(Sitemap):
     changefreq = 'weekly'
     priority = 0.8
-
+    
     def items(self):
         return Post.objects.get_published()
 

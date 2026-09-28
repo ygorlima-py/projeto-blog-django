@@ -11,7 +11,7 @@ amp-story {
     grid-template-rows: repeat(3, minmax(0, 1fr));
     width: 100%;
     height: 100%;
-    padding: 0.5rem 1rem 1.5rem;
+    padding: 0.5rem clamp(0.5rem, 2.5vw, 1rem) 1.5rem;
 }
 
 .story-region {
@@ -118,11 +118,9 @@ amp-story-cta-layer {
 }
 
 .amp-story-grid-layer.story-related-layer {
-    padding: 40px 32px 32px !important;
-}
-
-.story-related-layer {
-    padding: 2rem 2rem 1rem;
+    min-width: 0;
+    overflow: hidden !important;
+    padding: 2.5rem 2rem 2rem !important;
 }
 
 .story-avatar-frame {
@@ -150,8 +148,11 @@ amp-story-cta-layer {
     flex-direction: column;
     gap: 0.35em;
     width: 100%;
+    min-width: 0;
     min-height: 100%;
+    max-width: 100%;
     padding: 0.5em;
+    overflow: hidden;
     background: transparent;
 }
 
@@ -169,12 +170,18 @@ amp-story-cta-layer {
 
 .story-related-post-card {
     display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
     color: #fff;
     text-decoration: none;
     pointer-events: auto;
 }
 
 .story-related-post-card amp-img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
     border-radius: 0.08em;
 }
@@ -186,4 +193,50 @@ amp-story-cta-layer {
     color: var(--story-text-color, #d36036);
     font-weight: var(--story-font-weight, 100);
     line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+    .amp-story-grid-layer.story-related-layer {
+        padding: 1.25rem 0.75rem 1rem !important;
+    }
+
+    .story-related-posts {
+        gap: 0.25em;
+        padding: 0.25em;
+    }
+
+    .story-avatar-frame {
+        width: 4.5rem;
+        height: 4.5rem;
+        min-width: 4.5rem;
+        min-height: 4.5rem;
+    }
+
+    .story-related-posts h2 {
+        line-height: 1.15;
+    }
+
+    .story-related-post-card span {
+        line-height: 1.2;
+    }
+}
+
+@media (max-height: 680px) {
+    .amp-story-grid-layer.story-related-layer {
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .story-related-posts {
+        gap: 0.2em;
+        padding-block: 0.2em;
+    }
+
+    .story-avatar-frame {
+        width: 4rem;
+        height: 4rem;
+        min-width: 4rem;
+        min-height: 4rem;
+    }
 }

@@ -22,18 +22,22 @@ from django.urls import include, path
 
 from affiliates.sitemaps import AffiliateCategorySitemap, AffiliateListSitemap
 from blog.sitemaps import PageSitemap, PostSitemap, StaticSitemap
-
+from stories.sitemaps import StorySitemap
+from project.views import robots_txt
 
 sitemaps = {
     'static': StaticSitemap,
     'posts': PostSitemap,
+    'stories': StorySitemap,
     'pages': PageSitemap,
     'affiliate_list': AffiliateListSitemap,
     'affiliate_categories': AffiliateCategorySitemap,
 }
 
 urlpatterns = [
+    path('robots.txt', robots_txt, name='robots_txt'),
     path('', include('blog.urls')),
+    path('summernote/', include('django_summernote.urls')),
     path('parceiros/', include('affiliates.urls')),
     path(
         'sitemap.xml',
@@ -42,7 +46,6 @@ urlpatterns = [
         name='django.contrib.sitemaps.views.sitemap',
     ),
     path('admin/', admin.site.urls),
-    path('summernote/', include('django_summernote.urls')),
     path("stories/", include("stories.urls")),
 ]
 

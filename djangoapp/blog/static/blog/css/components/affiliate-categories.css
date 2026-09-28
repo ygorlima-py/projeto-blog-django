@@ -1,0 +1,71 @@
+/* Affiliate category links and their icon/hover treatment. */
+
+.landing-affiliates-categories {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    color: var(--color-affiliates-accent);
+    font-family: Montserrat, sans-serif;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.landing-affiliates-categories-circle {
+    display: flex;
+    width: 6rem;
+    height: 6rem;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0.8rem;
+    border: 1px solid var(--color-affiliates-accent);
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: var(--color-paper);
+}
+
+.landing-affiliate-icon {
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    max-width: 70%;
+    max-height: 70%;
+    background-color: var(--color-affiliates-accent);
+    -webkit-mask: var(--icon-url) center / contain no-repeat;
+    mask: var(--icon-url) center / contain no-repeat;
+}
+
+.landing-affiliates-categories > span:last-child {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.4rem;
+}
+
+.landing-affiliates-categories > span:last-child::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: currentColor;
+    transform: scaleX(0);
+    transition: transform 180ms ease;
+}
+
+.landing-affiliates-categories:hover .landing-affiliates-categories-circle,
+.landing-affiliates-categories:focus-visible .landing-affiliates-categories-circle {
+    border-color: var(--color-affiliates-accent);
+    background-color: var(--color-affiliates-accent);
+}
+
+.landing-affiliates-categories:hover .landing-affiliate-icon,
+.landing-affiliates-categories:focus-visible .landing-affiliate-icon {
+    background-color: var(--color-paper);
+}
+
+.landing-affiliates-categories:hover > span:last-child::after,
+.landing-affiliates-categories:focus-visible > span:last-child::after {
+    transform: scaleX(1);
+}

@@ -14,7 +14,12 @@
                     </li>
                     {% for category in navigation_categories %}
                         {% url 'blog:category' category.slug as category_url %}
-                        <li>
+                        <li class="category-element">
+                            <div class="category-element-conainer-image">
+                                {% if category.cover_image %}
+                                    <img src="{{category.cover_image.url}}" alt="">
+                                {% endif %}
+                            </div>
                             <a
                                 href="{{ category_url }}"
                                 {% if request.path == category_url %}aria-current="page"{% endif %}

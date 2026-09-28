@@ -13,6 +13,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 from django.utils.text import slugify
 from django.core.validators import RegexValidator,  MaxValueValidator, MinValueValidator
 
@@ -43,7 +44,10 @@ class Story(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
-
+        
+    def get_absolute_url(self):
+        return reverse("stories:detail", kwargs={'slug': self.slug})
+    
     def __str__(self):
         """Return the human-readable story title for admin and logs."""
         return self.title

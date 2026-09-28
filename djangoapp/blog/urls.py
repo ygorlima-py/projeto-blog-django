@@ -18,7 +18,8 @@ from blog.views import (
 app_name = 'blog'
 
 urlpatterns = [
-    path('', PostListView.as_view(), name='index'),
+    path('', LandingPageView.as_view(), name='landing'),
+    path('blog/', PostListView.as_view(), name='index'),
     path('pagina/<slug:slug>/', PageDetailView.as_view(), name='page'), # type: ignore
     path(
         'page/<slug:slug>/',
@@ -35,9 +36,4 @@ urlpatterns = [
     ),
     path('tag/<slug:slug>/', TagListView.as_view(), name='tag'), # type: ignore
     path('serarch/', SearchListView.as_view(), name='search'), 
-    path(
-        'landing/',
-        LandingPageView.as_view(),
-        name='landing',
-    ),
 ]

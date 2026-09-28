@@ -1,8 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
   new Swiper(".landing-destinations-swiper", {
-    slidesPerView: 3,
-    spaceBetween: 36,
+    slidesPerView: 1,
+    spaceBetween: 16,
     loop: true,
+
+    breakpoints: {
+      640: {
+        slidesPerView: 2,
+        spaceBetween: 24,
+      },
+      960: {
+        slidesPerView: 3,
+        spaceBetween: 36,
+      },
+    },
 
     autoplay: {
       delay: 5000,
