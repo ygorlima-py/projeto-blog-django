@@ -70,7 +70,10 @@ class StorySlide(models.Model):
         related_name="slides",
     )
 
-    image = models.ImageField(upload_to="stories/slides/")
+    image = models.ImageField(
+        upload_to="stories/slides/",
+        blank=True,
+        )
     alt_text = models.CharField(max_length=150)
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
