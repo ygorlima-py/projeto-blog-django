@@ -298,6 +298,47 @@ class StoryDetailViewTests(StoryTestCase):
         self.assertContains(response, post.title)
         self.assertContains(response, f'src="/media/{post.cover.name}"')
 
+    def test_common_slide_bottom_text_and_post_outlink(self):
+        story = self.create_story(slug="story-post-slide-comum")
+        common_slide = self.create_slide(story, order=1)
+        self.create_slide(story, order=2)
+        post = self.create_post(
+            title="Post no slide comum",
+            slug="post-no-slide-comum",
+        )
+        StoryElement.objects.create(
+            slide=common_slide,
+            element_type=StoryElement.ElementType.TEXT,
+            text="Texto na região inferior",
+            position=StoryElement.Position.BOTTOM,
+        )
+        StoryElement.objects.create(
+            slide=common_slide,
+            element_type=StoryElement.ElementType.CTA,
+            text="Ler post no slide",
+            position=StoryElement.Position.BOTTOM,
+            post=post,
+        )
+
+        response = self.client.get(story.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '<amp-story-grid-layer template="fill" class="story-bottom-layer">',
+        )
+        self.assertContains(response, "Texto na região inferior")
+        self.assertContains(response, "<amp-story-page-outlink")
+        self.assertContains(
+            response,
+            f'cta-image="/media/{post.cover.name}"',
+        )
+        self.assertContains(
+            response,
+            f'href="{post.get_absolute_url()}"',
+        )
+        self.assertContains(response, "Ler post no slide")
+
 
 class StoryListViewTests(StoryTestCase):
     def test_list_shows_only_published_stories(self):
