@@ -1,0 +1,35 @@
+{% load l10n %}
+<div
+    class="story-element story-element--{{ element.element_type }}"
+    {% if element.animation != "none" %}
+        animate-in="{{ element.animation }}"
+        animate-in-delay="{{ element.delay_ms }}ms"
+        animate-in-duration="{{ element.duration_ms }}ms"
+    {% endif %}
+    style="
+        --story-text-color: {{ element.variant }};
+        --story-font-style: {{ element.font_style }};
+        {% if element.spacing_after_rem is not None %}
+            --story-spacing-after: {{ element.spacing_after_rem|unlocalize }}rem;
+        {% endif %}
+        {% if element.background_color %}
+            --story-background-color: {{ element.background_color }};
+        {% endif %}
+        {% if element.font_size_rem %}
+            --story-font-size: {{ element.font_size_rem|unlocalize }}rem;
+        {% endif %}
+        {% if element.font_weight %}
+            --story-font-weight: {{ element.font_weight }};
+        {% endif %}
+    "
+>
+    {% if element.element_type == "title" %}
+        {% if slide.order == 1 %}
+            <h1>{{ element.text }}</h1>
+        {% else %}
+            <h2>{{ element.text }}</h2>
+        {% endif %}
+    {% else %}
+        <p>{{ element.text }}</p>
+    {% endif %}
+</div>
