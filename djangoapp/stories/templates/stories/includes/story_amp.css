@@ -7,8 +7,8 @@ amp-story {
 }
 
 .story-elements-layer {
-    height: 100% !important;
-    min-height: 100% !important;
+    height: 100%;
+    min-height: 100%;
 }
 
 .story-regions {
@@ -118,8 +118,8 @@ amp-story-cta-layer {
 
 .amp-story-grid-layer.story-related-layer {
     min-width: 0;
-    overflow: hidden !important;
-    padding: 2.5rem 2rem 2rem !important;
+    overflow: hidden;
+    padding: 2.5rem 2rem 2rem;
 }
 
 .story-avatar-frame {
@@ -197,7 +197,7 @@ amp-story-cta-layer {
 
 @media (max-width: 600px) {
     .amp-story-grid-layer.story-related-layer {
-        padding: 1.25rem 0.75rem 1rem !important;
+        padding: 1.25rem 0.75rem 1rem;
     }
 
     .story-related-posts {
@@ -223,8 +223,8 @@ amp-story-cta-layer {
 
 @media (max-height: 680px) {
     .amp-story-grid-layer.story-related-layer {
-        padding-top: 0.75rem !important;
-        padding-bottom: 0.5rem !important;
+        padding-top: 0.75rem;
+        padding-bottom: 0.5rem;
     }
 
     .story-related-posts {
