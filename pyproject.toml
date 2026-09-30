@@ -8,6 +8,7 @@ dependencies = [
     "bleach[css]>=6.2,<7",
     "django>=5.2.7,<5.3",
     "django-axes>=8.0.0,<8.1.0",
+    "django-mcp-server>=0.5.7",
     "django-summernote>=0.8.20.0,<0.8.20.1",
     "gunicorn>=23,<24",
     "pillow>=12.0.0,<12.1.0",
@@ -16,6 +17,7 @@ dependencies = [
     "sqlparse==0.5.3",
     "tzdata==2025.2",
     "webencodings==0.5.1",
+    "mcp>=1.8,<2",
 ]
 
 [tool.uv]

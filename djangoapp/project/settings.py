@@ -93,6 +93,9 @@ INSTALLED_APPS = [
     'site_setup',
     'affiliates',
     'stories',
+    "rest_framework",
+    "rest_framework.authtoken",
+    "mcp_server",
 
     # Django Summernote
     'project.apps.ProjectSummernoteConfig',
@@ -101,6 +104,9 @@ INSTALLED_APPS = [
     'axes',
 ]
 
+DJANGO_MCP_AUTHENTICATION_CLASSES = [
+    "project.mcp_auth.MCPBearerTokenAuthentication",
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

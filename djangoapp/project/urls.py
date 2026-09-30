@@ -36,6 +36,7 @@ sitemaps = {
 
 urlpatterns = [
     path('robots.txt', robots_txt, name='robots_txt'),
+    path("", include("mcp_server.urls")),
     path('', include('blog.urls')),
     path('summernote/', include('django_summernote.urls')),
     path('parceiros/', include('affiliates.urls')),
