@@ -18,7 +18,7 @@ Animation = Literal[
 FontWeight = Literal[100,200,300,400,500,600,700,800,900]
 FontStyle = Literal['normal', 'italic']
 
-_EDITABLE_FIELDS = {
+_EDITABLE_ELEMENTS_FIELDS = {
         "slide_id",
         "element_type",
         "text",
@@ -35,6 +35,10 @@ _EDITABLE_FIELDS = {
         "order",
     }
 
+_EDITABLE_STORY_FIELDS = {
+    "title",
+    "slug",
+}
 class StoryTools(MCPToolset):
     """MCP tools for reading and editing stories and their slide elements.
 
@@ -249,7 +253,7 @@ class StoryTools(MCPToolset):
         if element is None:
             raise ValueError(f"Elemento {element_id} não encontrado.")
         
-        unknown_fields = set(changes) - _EDITABLE_FIELDS
+        unknown_fields = set(changes) - _EDITABLE_ELEMENTS_FIELDS
         if unknown_fields:
             raise ValueError(
                 f"Campos não permitidos: {', '.join(sorted(unknown_fields))}"
@@ -272,5 +276,51 @@ class StoryTools(MCPToolset):
             "message": f"Element {element.id} updated successfully.",
         }
 
+    
+    def update_story(self, story_id: int, changes: dict[str, Any]) -> dict[str, str | int | list]:
+        """
+            Update an existing story using an allowlisted set of editable fields.
 
+            The story is identified by its primary key. Before saving, the method
+            validates every requested field against the editable-field allowlist,
+            applies the changes, and runs Django model validation with ``full_clean()``.
 
+            Args:
+                story_id: Database ID of the story to update.
+                changes: Mapping of field names to their new values. Only fields
+                    included in ``_EDITABLE_STORY_FIELDS`` may be changed.
+
+            Returns:
+                A dictionary containing the updated story ID, the list of updated
+                fields, and a success message.
+
+            Raises:
+                ValueError: If the story does not exist, an unknown field is provided,
+                    or the updated values fail model validation.
+        """
+        
+        story = Story.objects.filter(pk=story_id).first()
+        
+        if story is None:
+            raise ValueError(f"Elemento {story_id} não encontrado.")
+                
+        unknown_fields = set(changes) - _EDITABLE_STORY_FIELDS
+        if unknown_fields:
+            raise ValueError(
+                f"Campos não permitidos: {', '.join(sorted(unknown_fields))}"
+            )
+        for field, value in changes.items():
+            setattr(story, field, value)
+
+        try:
+            story.full_clean()
+        except ValidationError as error:
+            raise ValueError("; ".join(error.messages)) from error
+        
+        story.save()
+        
+        return {
+            "element_id": story.id,
+            "updated_fields": list(changes),
+            "message": f"Element {story.id} updated successfully.",
+        }
