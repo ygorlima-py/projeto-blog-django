@@ -10,6 +10,10 @@
     <title>{{seo_title}} | {{ site_setup.title|default:"Ásia de Perto" }}</title>
     <link rel="canonical" href="{{ canonical_url }}">
 
+    {% if site_setup.favicon %}
+        <link rel="icon" href="{{ site_setup.favicon.url }}" type="image/png">
+    {% endif %}
+
     <meta
         name="robots"
         content="index, follow, max-image-preview:large"

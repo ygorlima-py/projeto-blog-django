@@ -10,6 +10,7 @@ from PIL import Image
 
 from affiliates.models import AffiliateCategory, AffiliatePartner
 from blog.models import Post
+from site_setup.models import SiteSetup
 
 from .mcp import StoryTools
 from .models import Story, StoryElement, StorySlide
@@ -568,14 +569,81 @@ class StoryMCPTests(StoryTestCase):
             changes={
                 "title": "Story MCP atualizado",
                 "slug": "story-mcp-atualizado",
+                "order": 6,
             },
         )
 
         self.story.refresh_from_db()
 
-        self.assertEqual(result["updated_fields"], ["title", "slug"])
+        self.assertEqual(result["updated_fields"], ["title", "slug", "order"])
         self.assertEqual(self.story.title, "Story MCP atualizado")
         self.assertEqual(self.story.slug, "story-mcp-atualizado")
+        self.assertEqual(self.story.order, 6)
+
+    def test_update_story_replaces_cover_and_returns_cover_url(self):
+        image_base64 = self.make_png_base64()
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                result = self.tools.update_story(
+                    story_id=self.story.id,
+                    changes={"order": 9},
+                    cover_base64=f"data:image/png;base64,{image_base64}",
+                    cover_filename="C:\\uploads\\cover-tailandia.png",
+                )
+
+                self.story.refresh_from_db()
+
+                self.assertEqual(
+                    result["updated_fields"],
+                    ["order", "cover"],
+                )
+                self.assertEqual(self.story.order, 9)
+                self.assertTrue(self.story.cover.name.startswith("stories/cover/"))
+                self.assertTrue(self.story.cover.name.endswith("cover-tailandia.png"))
+                self.assertEqual(
+                    result["cover_url"],
+                    f"http://testserver/media/{self.story.cover.name}",
+                )
+
+    def test_create_story_creates_draft_with_cover_and_order(self):
+        image_base64 = self.make_png_base64()
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                result = self.tools.create_story(
+                    title="Ilhas imperdíveis da Tailândia",
+                    slug="ilhas-imperdiveis-da-tailandia",
+                    cover_base64=f"data:image/png;base64,{image_base64}",
+                    cover_filename="C:\\uploads\\ilhas-tailandia.png",
+                    order=3,
+                )
+
+                story = Story.objects.get(pk=result["story_id"])
+
+                self.assertEqual(story.title, "Ilhas imperdíveis da Tailândia")
+                self.assertEqual(story.slug, "ilhas-imperdiveis-da-tailandia")
+                self.assertEqual(story.order, 3)
+                self.assertFalse(story.is_published)
+                self.assertNotIn("is_published", result)
+                self.assertTrue(story.cover.name.startswith("stories/cover/"))
+                self.assertTrue(
+                    story.cover.name.endswith("ilhas-tailandia.png"),
+                )
+                self.assertEqual(
+                    result["cover_url"],
+                    f"http://testserver/media/{story.cover.name}",
+                )
+
+    def test_update_story_does_not_allow_publication_status(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "Campos não permitidos: is_published",
+        ):
+            self.tools.update_story(
+                story_id=self.story.id,
+                changes={"is_published": False},
+            )
 
     def test_create_story_slide_decodes_base64_and_persists_image(self):
         image_base64 = self.make_png_base64()
@@ -636,3 +704,84 @@ class StoryMCPTests(StoryTestCase):
             )
 
         self.assertEqual(self.story.slides.count(), 1)
+
+    def test_update_story_slide_updates_metadata(self):
+        result = self.tools.update_story_slide(
+            slide_id=self.slide.id,
+            alt_text="Praia atualizada",
+            order=8,
+            background_color="#112233",
+        )
+
+        self.slide.refresh_from_db()
+
+        self.assertEqual(result["slide_id"], self.slide.id)
+        self.assertEqual(
+            result["updated_fields"],
+            ["alt_text", "order", "background_color"],
+        )
+        self.assertEqual(self.slide.alt_text, "Praia atualizada")
+        self.assertEqual(self.slide.order, 8)
+        self.assertEqual(self.slide.background_color, "#112233")
+
+    def test_update_story_slide_replaces_image(self):
+        image_base64 = self.make_png_base64()
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                result = self.tools.update_story_slide(
+                    slide_id=self.slide.id,
+                    image_base64=image_base64,
+                    filename="nova-praia.png",
+                )
+
+                self.slide.refresh_from_db()
+
+                self.assertEqual(result["updated_fields"], ["image"])
+                self.assertTrue(self.slide.image.name.endswith("nova-praia.png"))
+                self.assertEqual(
+                    result["image_url"],
+                    f"http://testserver/media/{self.slide.image.name}",
+                )
+
+    def test_update_story_slide_requires_at_least_one_change(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "Informe ao menos um campo para atualizar.",
+        ):
+            self.tools.update_story_slide(slide_id=self.slide.id)
+
+
+class StoryFaviconTests(StoryTestCase):
+    def setUp(self):
+        super().setUp()
+        self.site_setup = SiteSetup.objects.create(
+            title="Ásia de Perto",
+            description="Viagens pela Ásia.",
+            favicon="assets/favicon/site.png",
+            logo="assets/logo/site.png",
+        )
+
+    def test_favicon_is_rendered_on_landing_and_stories_list(self):
+        landing_response = self.client.get(reverse("blog:landing"))
+        stories_response = self.client.get(reverse("stories:list"))
+
+        favicon_link = (
+            '<link rel="icon" href="/media/assets/favicon/site.png" '
+            'type="image/png">'
+        )
+        self.assertContains(landing_response, favicon_link, html=True)
+        self.assertContains(stories_response, favicon_link, html=True)
+
+    def test_favicon_is_rendered_when_opening_a_story(self):
+        story = self.create_story(slug="story-com-favicon")
+        self.create_slide(story)
+
+        response = self.client.get(story.get_absolute_url())
+
+        self.assertContains(
+            response,
+            '<link rel="icon" href="/media/assets/favicon/site.png" '
+            'type="image/png">',
+            html=True,
+        )
