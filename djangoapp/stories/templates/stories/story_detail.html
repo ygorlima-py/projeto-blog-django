@@ -7,6 +7,10 @@
 
     <title>{{ story.title }}</title>
 
+    {% if site_setup.favicon %}
+        <link rel="icon" href="{{ site_setup.favicon.url }}" type="image/png">
+    {% endif %}
+
     <link
         rel="canonical"
         href="{{ request.build_absolute_uri }}"

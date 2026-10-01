@@ -44,9 +44,43 @@ _EDITABLE_ELEMENTS_FIELDS = {
 _EDITABLE_STORY_FIELDS = {
     "title",
     "slug",
+    "order",
 }
 
 _MAX_STORY_SLIDE_IMAGE_BYTES = 10 * 1024 * 1024
+
+
+def _decode_story_image(
+    image_base64: str,
+    filename: str,
+) -> tuple[bytes, str]:
+    """Decode and validate an image received by a story-slide tool."""
+    safe_filename = PurePath(filename.replace("\\", "/")).name
+    if not safe_filename or safe_filename in {".", ".."}:
+        raise ValueError("filename deve conter um nome de arquivo válido.")
+
+    payload = image_base64.strip()
+    if "," in payload and payload.lower().startswith("data:"):
+        payload = payload.split(",", 1)[1]
+    payload = "".join(payload.split())
+
+    try:
+        image_bytes = base64.b64decode(payload, validate=True)
+    except (binascii.Error, ValueError) as error:
+        raise ValueError("image_base64 não contém um Base64 válido.") from error
+
+    if not image_bytes:
+        raise ValueError("A imagem enviada está vazia.")
+    if len(image_bytes) > _MAX_STORY_SLIDE_IMAGE_BYTES:
+        raise ValueError("A imagem não pode exceder 10 MB.")
+
+    try:
+        with Image.open(BytesIO(image_bytes)) as image:
+            image.verify()
+    except (UnidentifiedImageError, OSError) as error:
+        raise ValueError("O conteúdo enviado não é uma imagem válida.") from error
+
+    return image_bytes, safe_filename
 
 
 
@@ -139,6 +173,73 @@ class StoryTools(MCPToolset):
         return result
 
     @transaction.atomic
+    def create_story(
+        self,
+        title: str,
+        cover_base64: str,
+        cover_filename: str,
+        slug: str | None = None,
+        order: int = 0,
+    ) -> dict[str, Any]:
+        """Create a new unpublished story with a cover image.
+
+        The story is always created as a draft. Publishing remains an admin
+        responsibility, so ``is_published`` is intentionally not exposed as
+        an argument of this tool.
+
+        Args:
+            title: Human-readable story title.
+            cover_base64: Cover image encoded as Base64 or a data URI.
+            cover_filename: Filename for the cover image.
+            slug: Optional unique URL slug. If omitted, Django generates it
+                from the title.
+            order: Position of the story in the published story list.
+
+        Returns:
+            The created story ID, title, slug, cover URL, and order.
+
+        Raises:
+            ValueError: If the title or cover data is invalid, or the slug is
+                already in use.
+        """
+        clean_title = title.strip()
+        if not clean_title:
+            raise ValueError("title não pode ficar vazio.")
+
+        image_bytes, safe_filename = _decode_story_image(
+            cover_base64,
+            cover_filename,
+        )
+
+        story = Story(
+            title=clean_title,
+            slug=slug.strip() if slug is not None else "",
+            is_published=False,
+            order=order,
+        )
+        story.cover = ContentFile(image_bytes, name=safe_filename)
+
+        try:
+            story.full_clean()
+        except ValidationError as error:
+            raise ValueError("; ".join(error.messages)) from error
+
+        story.save()
+
+        cover_url = story.cover.url
+        if getattr(self, "request", None) is not None:
+            cover_url = self.request.build_absolute_uri(cover_url)
+
+        return {
+            "story_id": story.id,
+            "title": story.title,
+            "slug": story.slug,
+            "cover_url": cover_url,
+            "order": story.order,
+            "message": f"Story {story.id} created successfully.",
+        }
+
+    @transaction.atomic
     def create_story_slide(
         self,
         story_id: int,
@@ -183,30 +284,10 @@ class StoryTools(MCPToolset):
         if len(clean_alt_text) > 150:
             raise ValueError("alt_text deve ter no máximo 150 caracteres.")
 
-        safe_filename = PurePath(filename.replace("\\", "/")).name
-        if not safe_filename or safe_filename in {".", ".."}:
-            raise ValueError("filename deve conter um nome de arquivo válido.")
-
-        payload = image_base64.strip()
-        if "," in payload and payload.lower().startswith("data:"):
-            payload = payload.split(",", 1)[1]
-        payload = "".join(payload.split())
-
-        try:
-            image_bytes = base64.b64decode(payload, validate=True)
-        except (binascii.Error, ValueError) as error:
-            raise ValueError("image_base64 não contém um Base64 válido.") from error
-
-        if not image_bytes:
-            raise ValueError("A imagem enviada está vazia.")
-        if len(image_bytes) > _MAX_STORY_SLIDE_IMAGE_BYTES:
-            raise ValueError("A imagem não pode exceder 10 MB.")
-
-        try:
-            with Image.open(BytesIO(image_bytes)) as image:
-                image.verify()
-        except (UnidentifiedImageError, OSError) as error:
-            raise ValueError("O conteúdo enviado não é uma imagem válida.") from error
+        image_bytes, safe_filename = _decode_story_image(
+            image_base64,
+            filename,
+        )
 
         slide = StorySlide(
             story=story,
@@ -229,6 +310,105 @@ class StoryTools(MCPToolset):
             "alt_text": slide.alt_text,
             "order": slide.order,
             "message": f"Slide {slide.id} created successfully on story {story.id}.",
+        }
+
+
+    @transaction.atomic
+    def update_story_slide(
+        self,
+        slide_id: int,
+        image_base64: str | None = None,
+        filename: str | None = None,
+        alt_text: str | None = None,
+        order: int | None = None,
+        background_color: str | None = None,
+    ) -> dict[str, Any]:
+        """Update an existing story slide using only supplied fields.
+
+        Use ``show_story_detail_by_id`` first to locate the correct
+        ``slide_id``. When replacing the image, provide both ``image_base64``
+        and ``filename``. The image accepts raw Base64 or a data URI and is
+        validated before being saved.
+
+        Args:
+            slide_id: Database ID of the slide to update.
+            image_base64: Optional replacement image encoded as Base64.
+            filename: Filename for the replacement image.
+            alt_text: Optional accessible image description, up to 150 chars.
+            order: Optional position of the slide in the story.
+            background_color: Optional slide background color in ``#RRGGBB``.
+
+        Returns:
+            The updated slide ID, image URL, metadata, and field names.
+
+        Raises:
+            ValueError: If the slide does not exist, no fields were supplied,
+                the image input is incomplete, or the image is invalid.
+            ValidationError: If the updated slide fails model validation.
+        """
+        slide = (
+            StorySlide.objects
+            .select_for_update()
+            .filter(pk=slide_id)
+            .first()
+        )
+        if slide is None:
+            raise ValueError(f"Slide id={slide_id} não encontrado.")
+
+        changes: list[str] = []
+
+        if image_base64 is not None:
+            if not filename:
+                raise ValueError(
+                    "filename é obrigatório quando a imagem é atualizada."
+                )
+            image_bytes, safe_filename = _decode_story_image(
+                image_base64,
+                filename,
+            )
+            slide.image = ContentFile(image_bytes, name=safe_filename)
+            changes.append("image")
+        elif filename is not None:
+            raise ValueError(
+                "image_base64 é obrigatório quando filename é informado."
+            )
+
+        if alt_text is not None:
+            clean_alt_text = alt_text.strip()
+            if not clean_alt_text:
+                raise ValueError("alt_text não pode ficar vazio.")
+            if len(clean_alt_text) > 150:
+                raise ValueError("alt_text deve ter no máximo 150 caracteres.")
+            slide.alt_text = clean_alt_text
+            changes.append("alt_text")
+
+        if order is not None:
+            slide.order = order
+            changes.append("order")
+
+        if background_color is not None:
+            slide.background_color = background_color
+            changes.append("background_color")
+
+        if not changes:
+            raise ValueError("Informe ao menos um campo para atualizar.")
+
+        slide.full_clean()
+        slide.save()
+
+        image_url = slide.image.url if slide.image else None
+        if image_url and getattr(self, "request", None) is not None:
+            image_url = self.request.build_absolute_uri(image_url)
+
+        return {
+            "slide_id": slide.id,
+            "story_id": slide.story_id,
+            "image_url": image_url,
+            "alt_text": slide.alt_text,
+            "order": slide.order,
+            "background_color": slide.background_color,
+            "updated_fields": changes,
+            "message": f"Slide {slide.id} updated successfully.",
         }
 
 
@@ -382,50 +562,91 @@ class StoryTools(MCPToolset):
         }
     
     @transaction.atomic
-    def update_story(self, story_id: int, changes: dict[str, Any]) -> dict[str, str | int | list]:
+    def update_story(
+        self,
+        story_id: int,
+        changes: dict[str, Any],
+        cover_base64: str | None = None,
+        cover_filename: str | None = None,
+    ) -> dict[str, str | int | list]:
+        """Update an existing story's editable content and cover image.
+
+        The editable story fields are ``title``, ``slug`` and ``order``.
+        ``is_published`` is intentionally not editable here; publication is
+        controlled through the Django admin. To replace the cover image,
+        provide both ``cover_base64`` and ``cover_filename``. The image uses
+        the same Base64/data-URI validation as story slides.
+
+        Args:
+            story_id: Database ID of the story to update.
+            changes: Mapping containing optional ``title``, ``slug`` and
+                ``order`` values.
+            cover_base64: Optional replacement cover encoded as Base64 or a
+                data URI.
+            cover_filename: Filename for the replacement cover image.
+
+        Returns:
+            A dictionary containing the updated story ID, fields, cover URL,
+            and a success message.
+
+        Raises:
+            ValueError: If the story does not exist, an unknown field is
+                supplied, the cover arguments are incomplete, or the image is
+                invalid.
         """
-            Update an existing story using an allowlisted set of editable fields.
+        story = (
+            Story.objects
+            .select_for_update()
+            .filter(pk=story_id)
+            .first()
+        )
 
-            The story is identified by its primary key. Before saving, the method
-            validates every requested field against the editable-field allowlist,
-            applies the changes, and runs Django model validation with ``full_clean()``.
-
-            Args:
-                story_id: Database ID of the story to update.
-                changes: Mapping of field names to their new values. Only fields
-                    included in ``_EDITABLE_STORY_FIELDS`` may be changed.
-
-            Returns:
-                A dictionary containing the updated story ID, the list of updated
-                fields, and a success message.
-
-            Raises:
-                ValueError: If the story does not exist, an unknown field is provided,
-                    or the updated values fail model validation.
-        """
-        
-        story = Story.objects.filter(pk=story_id).first()
-        
         if story is None:
-            raise ValueError(f"Elemento {story_id} não encontrado.")
-                
+            raise ValueError(f"Story id={story_id} não encontrado.")
+
         unknown_fields = set(changes) - _EDITABLE_STORY_FIELDS
         if unknown_fields:
             raise ValueError(
                 f"Campos não permitidos: {', '.join(sorted(unknown_fields))}"
             )
+
+        updated_fields = list(changes)
         for field, value in changes.items():
             setattr(story, field, value)
+
+        if cover_base64 is not None:
+            if not cover_filename:
+                raise ValueError(
+                    "cover_filename é obrigatório quando o cover é atualizado."
+                )
+            image_bytes, safe_filename = _decode_story_image(
+                cover_base64,
+                cover_filename,
+            )
+            story.cover = ContentFile(image_bytes, name=safe_filename)
+            updated_fields.append("cover")
+        elif cover_filename is not None:
+            raise ValueError(
+                "cover_base64 é obrigatório quando cover_filename é informado."
+            )
+
+        if not updated_fields:
+            raise ValueError("Informe ao menos um campo para atualizar.")
 
         try:
             story.full_clean()
         except ValidationError as error:
             raise ValueError("; ".join(error.messages)) from error
-        
+
         story.save()
-        
+
+        cover_url = story.cover.url if story.cover else None
+        if cover_url and getattr(self, "request", None) is not None:
+            cover_url = self.request.build_absolute_uri(cover_url)
+
         return {
-            "element_id": story.id,
-            "updated_fields": list(changes),
-            "message": f"Element {story.id} updated successfully.",
+            "story_id": story.id,
+            "updated_fields": updated_fields,
+            "cover_url": cover_url,
+            "message": f"Story {story.id} updated successfully.",
         }
