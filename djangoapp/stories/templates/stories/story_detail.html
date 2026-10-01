@@ -174,7 +174,8 @@
                                         class="story-related-post-card"
                                         href="{{ element.post.get_absolute_url }}"
                                         role="link"
-                                        data-tooltip-text="Abrir artigo"
+                                        data-tooltip-text="{{ element.post.title }}"
+                                        data-tooltip-icon="{{ element.post.cover.url }}"
 
                                         {% if element.animation != "none" %}
                                             animate-in="{{ element.animation }}"
