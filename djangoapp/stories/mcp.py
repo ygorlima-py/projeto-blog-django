@@ -1,9 +1,15 @@
-from mcp_server import MCPToolset
-from typing import Any, Literal
+import base64
+import binascii
 from decimal import Decimal
+from io import BytesIO
+from pathlib import PurePath
+from typing import Any, Literal
 
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import transaction
+from mcp_server import MCPToolset
+from PIL import Image, UnidentifiedImageError
 
 from .models import Story, StorySlide, StoryElement
 
@@ -39,6 +45,11 @@ _EDITABLE_STORY_FIELDS = {
     "title",
     "slug",
 }
+
+_MAX_STORY_SLIDE_IMAGE_BYTES = 10 * 1024 * 1024
+
+
+
 class StoryTools(MCPToolset):
     """MCP tools for reading and editing stories and their slide elements.
 
@@ -126,6 +137,100 @@ class StoryTools(MCPToolset):
         ]
     
         return result
+
+    @transaction.atomic
+    def create_story_slide(
+        self,
+        story_id: int,
+        image_base64: str,
+        filename: str,
+        alt_text: str,
+        order: int = 0,
+        background_color: str = "#ffffff",
+    ) -> dict[str, Any]:
+        """Create a story slide with an uploaded image.
+
+        The image must be provided as raw Base64 or as a data URI such as
+        ``data:image/jpeg;base64,...``. The image is validated by Django's
+        ``ImageField`` before it is persisted.
+
+        Args:
+            story_id: Database ID of the story that will receive the slide.
+            image_base64: Image bytes encoded as Base64, optionally prefixed
+                with a data URI header.
+            filename: Original image filename. Only its final path component
+                is used when saving the file.
+            alt_text: Accessible description of the image, up to 150 chars.
+            order: Position of the slide in the story.
+            background_color: Slide background color in ``#RRGGBB`` format.
+
+        Returns:
+            The created slide ID, image URL, and saved slide metadata.
+
+        Raises:
+            ValueError: If the story does not exist, the Base64 data is
+                invalid or too large, or the supplied metadata is invalid.
+            ValidationError: If the uploaded file or slide data fails model
+                validation.
+        """
+        story = Story.objects.filter(pk=story_id).first()
+        if story is None:
+            raise ValueError(f"Story id={story_id} não encontrado.")
+
+        clean_alt_text = alt_text.strip()
+        if not clean_alt_text:
+            raise ValueError("alt_text não pode ficar vazio.")
+        if len(clean_alt_text) > 150:
+            raise ValueError("alt_text deve ter no máximo 150 caracteres.")
+
+        safe_filename = PurePath(filename.replace("\\", "/")).name
+        if not safe_filename or safe_filename in {".", ".."}:
+            raise ValueError("filename deve conter um nome de arquivo válido.")
+
+        payload = image_base64.strip()
+        if "," in payload and payload.lower().startswith("data:"):
+            payload = payload.split(",", 1)[1]
+        payload = "".join(payload.split())
+
+        try:
+            image_bytes = base64.b64decode(payload, validate=True)
+        except (binascii.Error, ValueError) as error:
+            raise ValueError("image_base64 não contém um Base64 válido.") from error
+
+        if not image_bytes:
+            raise ValueError("A imagem enviada está vazia.")
+        if len(image_bytes) > _MAX_STORY_SLIDE_IMAGE_BYTES:
+            raise ValueError("A imagem não pode exceder 10 MB.")
+
+        try:
+            with Image.open(BytesIO(image_bytes)) as image:
+                image.verify()
+        except (UnidentifiedImageError, OSError) as error:
+            raise ValueError("O conteúdo enviado não é uma imagem válida.") from error
+
+        slide = StorySlide(
+            story=story,
+            alt_text=clean_alt_text,
+            order=order,
+            background_color=background_color,
+        )
+        slide.image = ContentFile(image_bytes, name=safe_filename)
+        slide.full_clean()
+        slide.save()
+
+        image_url = slide.image.url
+        if getattr(self, "request", None) is not None:
+            image_url = self.request.build_absolute_uri(image_url)
+
+        return {
+            "slide_id": slide.id,
+            "story_id": story.id,
+            "image_url": image_url,
+            "alt_text": slide.alt_text,
+            "order": slide.order,
+            "message": f"Slide {slide.id} created successfully on story {story.id}.",
+        }
+
 
     def create_story_element(
         self,
@@ -275,8 +380,8 @@ class StoryTools(MCPToolset):
             "updated_fields": list(changes),
             "message": f"Element {element.id} updated successfully.",
         }
-
     
+    @transaction.atomic
     def update_story(self, story_id: int, changes: dict[str, Any]) -> dict[str, str | int | list]:
         """
             Update an existing story using an allowlisted set of editable fields.

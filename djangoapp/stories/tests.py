@@ -1,12 +1,17 @@
+import base64
+import tempfile
 from decimal import Decimal
+from io import BytesIO
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
 from affiliates.models import AffiliateCategory, AffiliatePartner
 from blog.models import Post
 
+from .mcp import StoryTools
 from .models import Story, StoryElement, StorySlide
 from .sitemaps import StorySitemap
 
@@ -422,3 +427,212 @@ class StoryURLTests(StoryTestCase):
         self.assertEqual(list_response.status_code, 200)
         self.assertEqual(detail_response.status_code, 200)
         self.assertEqual(missing_response.status_code, 404)
+
+
+class StoryMCPTests(StoryTestCase):
+    def setUp(self):
+        super().setUp()
+        self.story = self.create_story(
+            title="Story MCP",
+            slug="story-mcp",
+        )
+        self.slide = self.create_slide(self.story)
+        self.request = RequestFactory().get("/", HTTP_HOST="testserver")
+        self.tools = StoryTools(request=self.request)
+
+    def make_png_base64(self):
+        image_stream = BytesIO()
+        Image.new("RGB", (4, 4), color="#16a085").save(
+            image_stream,
+            format="PNG",
+        )
+        return base64.b64encode(image_stream.getvalue()).decode("ascii")
+
+    def test_list_published_stories_returns_only_published_stories(self):
+        draft = self.create_story(
+            title="Story MCP em rascunho",
+            slug="story-mcp-rascunho",
+            is_published=False,
+        )
+
+        result = self.tools.list_published_stories()
+
+        self.assertEqual(
+            result,
+            [
+                {
+                    "title": self.story.title,
+                    "story_id": self.story.id,
+                    "created_at": self.story.created_at.isoformat(),
+                },
+            ],
+        )
+        self.assertNotIn(draft.id, [story["story_id"] for story in result])
+
+    def test_show_story_detail_returns_slides_elements_and_absolute_image_url(self):
+        element = StoryElement.objects.create(
+            slide=self.slide,
+            element_type=StoryElement.ElementType.TITLE,
+            text="Título do slide",
+            order=1,
+        )
+
+        result = self.tools.show_story_detail_by_id(self.story.id)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["slide_id"], self.slide.id)
+        self.assertEqual(
+            result[0]["image_url"],
+            f"http://testserver/media/{self.slide.image.name}",
+        )
+        self.assertEqual(result[0]["image_description"], self.slide.alt_text)
+        self.assertEqual(result[0]["elements"][0]["element_id"], element.id)
+        self.assertEqual(result[0]["elements"][0]["text"], "Título do slide")
+
+    def test_create_story_element_persists_element_on_slide(self):
+        result = self.tools.create_story_element(
+            slide_id=self.slide.id,
+            element_type="text",
+            text="Texto criado pelo MCP",
+            font_size_rem=1.2,
+            font_weight=500,
+            font_color="#123456",
+            position="bottom",
+            order=2,
+        )
+
+        element = StoryElement.objects.get(text="Texto criado pelo MCP")
+
+        self.assertEqual(
+            result,
+            {
+                "tool_response": (
+                    f'Element {element.id} was created successfully on '
+                    f'slide {self.slide.id} with the text: '
+                    '"Texto criado pelo MCP".'
+                ),
+            },
+        )
+        self.assertEqual(element.variant, "#123456")
+        self.assertEqual(element.position, "bottom")
+        self.assertEqual(element.order, 2)
+
+    def test_create_story_element_returns_error_for_unknown_slide(self):
+        result = self.tools.create_story_element(
+            slide_id=999999,
+            element_type="text",
+            text="Texto sem slide",
+        )
+
+        self.assertEqual(
+            result,
+            {"Error": "Slide id=999999 not found, try with other id"},
+        )
+
+    def test_update_story_element_persists_allowed_changes(self):
+        element = StoryElement.objects.create(
+            slide=self.slide,
+            element_type=StoryElement.ElementType.TEXT,
+            text="Texto antigo",
+            order=1,
+        )
+
+        result = self.tools.update_story_element(
+            element_id=element.id,
+            changes={"text": "Texto atualizado", "order": 3},
+        )
+
+        element.refresh_from_db()
+
+        self.assertEqual(result["element_id"], element.id)
+        self.assertEqual(result["updated_fields"], ["text", "order"])
+        self.assertEqual(element.text, "Texto atualizado")
+        self.assertEqual(element.order, 3)
+
+    def test_update_story_element_rejects_unknown_fields(self):
+        element = StoryElement.objects.create(
+            slide=self.slide,
+            element_type=StoryElement.ElementType.TEXT,
+            text="Texto",
+        )
+
+        with self.assertRaisesMessage(ValueError, "Campos não permitidos: title"):
+            self.tools.update_story_element(
+                element_id=element.id,
+                changes={"title": "Não permitido"},
+            )
+
+    def test_update_story_persists_allowed_changes(self):
+        result = self.tools.update_story(
+            story_id=self.story.id,
+            changes={
+                "title": "Story MCP atualizado",
+                "slug": "story-mcp-atualizado",
+            },
+        )
+
+        self.story.refresh_from_db()
+
+        self.assertEqual(result["updated_fields"], ["title", "slug"])
+        self.assertEqual(self.story.title, "Story MCP atualizado")
+        self.assertEqual(self.story.slug, "story-mcp-atualizado")
+
+    def test_create_story_slide_decodes_base64_and_persists_image(self):
+        image_base64 = self.make_png_base64()
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                result = self.tools.create_story_slide(
+                    story_id=self.story.id,
+                    image_base64=f"data:image/png;base64,{image_base64}",
+                    filename="C:\\uploads\\praia-khai-nai.png",
+                    alt_text="Praia de Khai Nai Island com mar azul-turquesa.",
+                    order=4,
+                )
+
+                slide = StorySlide.objects.get(pk=result["slide_id"])
+
+                self.assertEqual(slide.story_id, self.story.id)
+                self.assertEqual(
+                    slide.alt_text,
+                    "Praia de Khai Nai Island com mar azul-turquesa.",
+                )
+                self.assertEqual(slide.order, 4)
+                self.assertTrue(slide.image.name.startswith("stories/slides/"))
+                self.assertTrue(slide.image.name.endswith("praia-khai-nai.png"))
+                self.assertEqual(
+                    result["image_url"],
+                    f"http://testserver/media/{slide.image.name}",
+                )
+
+    def test_create_story_slide_rejects_invalid_base64(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "image_base64 não contém um Base64 válido.",
+        ):
+            self.tools.create_story_slide(
+                story_id=self.story.id,
+                image_base64="not-base64",
+                filename="imagem.jpg",
+                alt_text="Descrição válida",
+            )
+
+        self.assertEqual(self.story.slides.count(), 1)
+
+    def test_create_story_slide_rejects_non_image_content(self):
+        invalid_image = base64.b64encode(
+            b"conteudo que nao e uma imagem",
+        ).decode("ascii")
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "O conteúdo enviado não é uma imagem válida.",
+        ):
+            self.tools.create_story_slide(
+                story_id=self.story.id,
+                image_base64=invalid_image,
+                filename="imagem.jpg",
+                alt_text="Descrição válida",
+            )
+
+        self.assertEqual(self.story.slides.count(), 1)
