@@ -45,6 +45,7 @@ _EDITABLE_STORY_FIELDS = {
     "title",
     "slug",
     "order",
+    "cover",
 }
 
 _MAX_STORY_SLIDE_IMAGE_BYTES = 10 * 1024 * 1024
@@ -105,12 +106,13 @@ class StoryTools(MCPToolset):
             A list of dictionaries with the keys ``title``, ``story_id``, and
             ``created_at``. The list is empty when no published stories exist.
         """
-        stories = Story.objects.filter(is_published=True)
+        stories = Story.objects.filter(is_published=True).order_by("order")
         
         result = [
             {
                 "title": story.title,
                 "story_id": story.id,
+                "order": story.order,
                 "created_at": story.created_at.isoformat(),
             }
             for story in stories
@@ -137,10 +139,11 @@ class StoryTools(MCPToolset):
         Returns:
             A list of slide dictionaries, each containing an ``elements`` list.
         """
-        slides = StorySlide.objects.filter(story_id=story_id)
+        slides = StorySlide.objects.filter(story_id=story_id).order_by("order")
         
         result = [                  
             {   "slide_id": slide.id,
+                "order": slide.order,
                 "image_url": (
                     self.request.build_absolute_uri(slide.image.url)
                     if slide.image

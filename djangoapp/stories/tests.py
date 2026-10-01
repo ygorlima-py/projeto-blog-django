@@ -464,6 +464,7 @@ class StoryMCPTests(StoryTestCase):
                 {
                     "title": self.story.title,
                     "story_id": self.story.id,
+                    "order": self.story.order,
                     "created_at": self.story.created_at.isoformat(),
                 },
             ],
