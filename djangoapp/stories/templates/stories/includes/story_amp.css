@@ -145,7 +145,7 @@ amp-story-cta-layer {
 
 .story-related-posts {
     position: relative;
-    top: -1rem;
+    top: -1.25rem;
     z-index: 1;
     display: flex;
     flex-direction: column;
