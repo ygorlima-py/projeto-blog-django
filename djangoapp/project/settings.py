@@ -108,6 +108,23 @@ DJANGO_MCP_AUTHENTICATION_CLASSES = [
     "project.mcp_auth.MCPBearerTokenAuthentication",
 ]
 
+DJANGO_MCP_GLOBAL_SERVER_CONFIG = {
+    "name": "asia-de-perto",
+    "instructions": """
+Este é o servidor MCP do blog Asia de Perto.
+
+Ele gerencia os recursos do blog disponibilizados pelas ferramentas,
+começando por Stories e futuramente incluindo Posts e Afiliados.
+
+Antes de alterar qualquer recurso:
+- consulte os dados atuais;
+- use os IDs retornados pelas ferramentas;
+- altere somente o que foi solicitado.
+
+As regras específicas de cada recurso estão descritas nas próprias ferramentas.
+"""
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
