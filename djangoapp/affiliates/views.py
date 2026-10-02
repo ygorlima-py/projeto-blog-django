@@ -27,8 +27,11 @@ class AffiliateListView(ListView):
         return self._active_category
 
     def get_queryset(self):
-        queryset = AffiliatePartner.objects.published().select_related(
-            'category'
+        queryset = (
+            AffiliatePartner.objects
+            .published()
+            .select_related('category')
+            .prefetch_related('links')
         )
         active_category = self.get_active_category()
 

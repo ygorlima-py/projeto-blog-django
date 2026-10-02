@@ -8,7 +8,7 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from affiliates.models import AffiliateCategory, AffiliatePartner
+from affiliates.models import AffiliateCategory, AffiliateLink, AffiliatePartner
 from blog.models import Post
 from site_setup.models import SiteSetup
 
@@ -54,12 +54,20 @@ class StoryTestCase(TestCase):
             "image": f"affiliates/partner-{sequence}.jpg",
             "cta_icon": f"affiliates/cta-icons/partner-{sequence}.webp",
             "image_alt": "Imagem do parceiro",
-            "affiliate_url": "https://parceiro.example/oferta",
-            "button_label": "Conhecer parceiro",
             "is_published": True,
         }
         data.update(overrides)
         return AffiliatePartner.objects.create(**data)
+
+    def create_affiliate_link(self, partner, **overrides):
+        data = {
+            "affiliate_partner": partner,
+            "name": "Link do parceiro",
+            "url": "https://parceiro.example/oferta",
+            "description": "Link de teste para conteúdo relacionado.",
+        }
+        data.update(overrides)
+        return AffiliateLink.objects.create(**data)
 
     def create_post(self, **overrides):
         sequence = Post.objects.count() + 1
@@ -106,6 +114,7 @@ class StoryElementValidationTests(StoryTestCase):
         self.story = self.create_story()
         self.slide = self.create_slide(self.story)
         self.partner = self.create_partner()
+        self.affiliate_link = self.create_affiliate_link(self.partner)
         self.post = self.create_post()
 
     def test_cta_without_destination_is_invalid(self):
@@ -117,7 +126,7 @@ class StoryElementValidationTests(StoryTestCase):
 
         with self.assertRaisesMessage(
             ValidationError,
-            "Escolha um parceiro afiliado ou um post.",
+            "Escolha um link afiliado ou um post.",
         ):
             element.full_clean()
 
@@ -126,7 +135,7 @@ class StoryElementValidationTests(StoryTestCase):
             slide=self.slide,
             element_type=StoryElement.ElementType.CTA,
             text="Abrir destino",
-            affiliate_partner=self.partner,
+            affiliate_link=self.affiliate_link,
             post=self.post,
         )
 
@@ -141,7 +150,7 @@ class StoryElementValidationTests(StoryTestCase):
             slide=self.slide,
             element_type=StoryElement.ElementType.CTA,
             text="Conhecer parceiro",
-            affiliate_partner=self.partner,
+            affiliate_link=self.affiliate_link,
         )
 
         element.full_clean()
@@ -256,14 +265,16 @@ class StoryDetailViewTests(StoryTestCase):
     def test_affiliate_cta_renders_secure_external_link(self):
         story = self.create_story(slug="story-afiliado")
         slide = self.create_slide(story)
-        partner = self.create_partner(
-            affiliate_url="https://parceiro.example/roteiro",
+        partner = self.create_partner()
+        affiliate_link = self.create_affiliate_link(
+            partner,
+            url="https://parceiro.example/roteiro",
         )
         StoryElement.objects.create(
             slide=slide,
             element_type=StoryElement.ElementType.CTA,
             text="Conheça o parceiro",
-            affiliate_partner=partner,
+            affiliate_link=affiliate_link,
         )
 
         response = self.client.get(story.get_absolute_url())
@@ -490,6 +501,11 @@ class StoryMCPTests(StoryTestCase):
         self.assertEqual(result[0]["image_description"], self.slide.alt_text)
         self.assertEqual(result[0]["elements"][0]["element_id"], element.id)
         self.assertEqual(result[0]["elements"][0]["text"], "Título do slide")
+        self.assertIn("font_color", result[0]["elements"][0])
+        self.assertIn("spacing_below_the_element_rem", result[0]["elements"][0])
+        self.assertIn("delay_ms", result[0]["elements"][0])
+        self.assertIn("duration_ms", result[0]["elements"][0])
+        self.assertIn("order", result[0]["elements"][0])
 
     def test_create_story_element_persists_element_on_slide(self):
         result = self.tools.create_story_element(
@@ -531,6 +547,23 @@ class StoryMCPTests(StoryTestCase):
             {"Error": "Slide id=999999 not found, try with other id"},
         )
 
+    def test_create_story_element_accepts_post_id(self):
+        post = self.create_post()
+
+        self.tools.create_story_element(
+            slide_id=self.slide.id,
+            element_type="cta",
+            text="Ler post",
+            post_id=post.id,
+        )
+
+        element = StoryElement.objects.get(text="Ler post")
+        self.assertEqual(element.post_id, post.id)
+        self.assertIsNone(element.affiliate_link_id)
+
+        detail = self.tools.show_story_detail_by_id(self.story.id)
+        self.assertEqual(detail[0]["elements"][0]["post_id"], post.id)
+
     def test_update_story_element_persists_allowed_changes(self):
         element = StoryElement.objects.create(
             slide=self.slide,
@@ -550,6 +583,48 @@ class StoryMCPTests(StoryTestCase):
         self.assertEqual(result["updated_fields"], ["text", "order"])
         self.assertEqual(element.text, "Texto atualizado")
         self.assertEqual(element.order, 3)
+
+    def test_update_story_element_maps_public_color_and_spacing_names(self):
+        element = StoryElement.objects.create(
+            slide=self.slide,
+            element_type=StoryElement.ElementType.TEXT,
+            text="Texto",
+        )
+
+        result = self.tools.update_story_element(
+            element_id=element.id,
+            changes={
+                "font_color": "#123456",
+                "spacing_below_the_element_rem": 1.25,
+            },
+        )
+
+        element.refresh_from_db()
+
+        self.assertEqual(
+            result["updated_fields"],
+            ["font_color", "spacing_below_the_element_rem"],
+        )
+        self.assertEqual(element.variant, "#123456")
+        self.assertEqual(element.spacing_after_rem, Decimal("1.25"))
+
+    def test_update_story_element_accepts_post_id(self):
+        post = self.create_post()
+        element = StoryElement.objects.create(
+            slide=self.slide,
+            element_type=StoryElement.ElementType.CTA,
+            text="Ler post",
+        )
+
+        result = self.tools.update_story_element(
+            element_id=element.id,
+            changes={"post_id": post.id},
+        )
+
+        element.refresh_from_db()
+
+        self.assertEqual(result["updated_fields"], ["post_id"])
+        self.assertEqual(element.post_id, post.id)
 
     def test_update_story_element_rejects_unknown_fields(self):
         element = StoryElement.objects.create(

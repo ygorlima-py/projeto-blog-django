@@ -16,7 +16,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from django.core.validators import RegexValidator,  MaxValueValidator, MinValueValidator
-
+from affiliates.models import AffiliateLink
 
 class Story(models.Model):
     """A published or draft visual story shown on the landing page.
@@ -239,14 +239,14 @@ class StoryElement(models.Model):
     )
     
     order = models.PositiveIntegerField(default=0, verbose_name="ordem")
-    affiliate_partner = models.ForeignKey(
-        "affiliates.AffiliatePartner",
+    affiliate_link = models.ForeignKey(
+        AffiliateLink,
         on_delete=models.PROTECT,
         related_name="story_elements",
         blank=True,
         null=True,
-        verbose_name="parceiro afiliado",
-        help_text="Usado quando o elemento for um botão de afiliado.",
+        verbose_name="link afiliado",
+        help_text="Usado quando o elemento for um botão de link afiliado.",
     )
     
     post = models.ForeignKey(
@@ -271,12 +271,12 @@ class StoryElement(models.Model):
         super().clean()
 
         if self.element_type == self.ElementType.CTA:
-            has_affiliate = bool(self.affiliate_partner_id)
+            has_affiliate = bool(self.affiliate_link_id)
             has_post = bool(self.post_id)
 
             if not has_affiliate and not has_post:
                 raise ValidationError(
-                    "Escolha um parceiro afiliado ou um post."
+                    "Escolha um link afiliado ou um post."
                 )
 
             if has_affiliate and has_post:
