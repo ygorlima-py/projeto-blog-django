@@ -35,12 +35,10 @@ class AffiliateCategoryQuerySet(models.QuerySet):
         """Categories suitable for the public filter list."""
         return self.active().filter(partners__is_published=True).distinct()
 
-
 class AffiliatePartnerQuerySet(models.QuerySet):
     def published(self):
         """Partners suitable for public pages."""
         return self.filter(is_published=True, category__is_active=True)
-
 
 class AffiliateCategoryManager(models.Manager):
     def get_queryset(self):
@@ -56,7 +54,6 @@ class AffiliateCategoryManager(models.Manager):
     def available(self):
         return self.get_queryset().available()
 
-
 class AffiliatePartnerManager(models.Manager):
     def get_queryset(self):
         return AffiliatePartnerQuerySet(
@@ -67,7 +64,6 @@ class AffiliatePartnerManager(models.Manager):
 
     def published(self):
         return self.get_queryset().published()
-
 
 class AffiliateCategory(models.Model):
     name = models.CharField(max_length=60, verbose_name='nome')
@@ -91,7 +87,6 @@ class AffiliateCategory(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class AffiliatePartner(models.Model):
     category = models.ForeignKey(
@@ -119,16 +114,6 @@ class AffiliatePartner(models.Model):
     image_alt = models.CharField(
         max_length=150,
         verbose_name='texto alternativo da imagem',
-    )
-    affiliate_url = models.URLField(
-        max_length=1000,
-        validators=[validate_https_url],
-        verbose_name='link de afiliado',
-    )
-    button_label = models.CharField(
-        max_length=40,
-        default='Conhecer parceiro',
-        verbose_name='texto do botão',
     )
     order = models.PositiveSmallIntegerField(default=0, verbose_name='ordem')
     is_published = models.BooleanField(default=False, verbose_name='publicado')
@@ -162,6 +147,40 @@ class AffiliatePartner(models.Model):
             )
 
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+class AffiliateLink(models.Model):
+    """A specific affiliate URL belonging to an affiliate partner."""
+
+    affiliate_partner = models.ForeignKey(
+        AffiliatePartner,
+        on_delete=models.PROTECT,
+        related_name='links',
+        verbose_name='parceiro afiliado',
+    )
+
+    name = models.CharField(max_length=100, verbose_name='nome')
+    url = models.URLField(
+        max_length=1000,
+        validators=[validate_https_url],
+        verbose_name='URL do link',
+    )
+    description = models.TextField(
+        max_length=300,
+        blank=True,
+        validators=[validate_plain_text],
+        verbose_name='descrição',
+        help_text='Explique em quais temas o link pode ser recomendado.',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('affiliate_partner', 'name')
+        verbose_name = 'link afiliado'
+        verbose_name_plural = 'links afiliados'
 
     def __str__(self):
         return self.name

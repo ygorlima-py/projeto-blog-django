@@ -16,7 +16,7 @@ class StoryDetailView(DetailView):
     def get_queryset(self):
         elements = (
             StoryElement.objects
-            .select_related("affiliate_partner")
+            .select_related("affiliate_link__affiliate_partner", "post")
             .order_by("order", "id")
         )
 
@@ -42,11 +42,9 @@ class StoryListView(ListView):
     context_object_name = 'stories'
     paginate_by = 8
     queryset = Story.objects.filter(is_published=True).order_by('-pk')
-    
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        
+
         context["affiliate_categories"] = AffiliateCategory.objects.available()
         return context
-        
-        

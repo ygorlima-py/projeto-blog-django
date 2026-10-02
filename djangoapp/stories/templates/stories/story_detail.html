@@ -208,10 +208,12 @@
 
                 <!-- O outlink AMP precisa ser o último filho da página. -->
                 {% for element in slide.elements.all %}
-                    {% if element.element_type == "cta" and element.affiliate_partner %}
+                    {% if element.element_type == "cta" and element.affiliate_link %}
                         <amp-story-page-outlink
                             layout="nodisplay"
-                            cta-image="{{ element.affiliate_partner.cta_icon.url }}"
+                            {% if element.affiliate_link.affiliate_partner.cta_icon %}
+                                cta-image="{{ element.affiliate_link.affiliate_partner.cta_icon.url }}"
+                            {% endif %}
 
                             {% if element.background_color %}
                                 theme="custom"
@@ -222,12 +224,12 @@
                             {% endif %}
                         >
                             <a
-                                href="{{ element.affiliate_partner.affiliate_url }}"
+                                href="{{ element.affiliate_link.url }}"
                                 target="_blank"
                                 rel="sponsored nofollow noopener noreferrer"
-                                title="{{ element.text }}"
+                                title="{{ element.text|default:element.affiliate_link.name }}"
                             >
-                                {{ element.text }}
+                                {{ element.text|default:element.affiliate_link.name }}
                             </a>
                         </amp-story-page-outlink>
                     {% elif element.element_type == "cta" and element.post and not forloop.parentloop.last %}

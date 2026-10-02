@@ -33,10 +33,10 @@ class StoryElementInline(admin.TabularInline):
         "delay_ms",
         "duration_ms",
         "order",
-        "affiliate_partner",
+        "affiliate_link",
         "post",
     )
-    autocomplete_fields = ("affiliate_partner",)
+    autocomplete_fields = ("affiliate_link",)
 
 
 @admin.register(Story)
@@ -49,7 +49,7 @@ class StoryAdmin(admin.ModelAdmin):
     ordering = ("order", "title")
     inlines = (StorySlideInline,)
     readonly_fields = ("image_preview",)
-    
+
     @admin.display(description="Prévia da imagem de capa")
     def image_preview(self, obj):
         if not obj.cover:
@@ -79,6 +79,27 @@ class StorySlideAdmin(admin.ModelAdmin):
     autocomplete_fields = ("story",)
     inlines = (StoryElementInline,)
     form = StorySlideAdminForm
+    readonly_fields = ("image_preview",)
+
+    @admin.display(description="Prévia da imagem do slide")
+    def image_preview(self, obj):
+        if not obj.image:
+            return "Nenhuma imagem cadastrada."
+
+        return format_html(
+            '<img src="{}" '
+            'style="'
+            'display:block;'
+            'width:100%;'
+            'max-width:300px;'
+            'height:500px;'
+            'object-fit:contain;'
+            'border-radius:12px;'
+            'background:#f1f1f1;'
+            '">',
+            obj.image.url,
+        )
+
 
 @admin.register(StoryElement)
 class StoryElementAdmin(admin.ModelAdmin):
@@ -87,11 +108,11 @@ class StoryElementAdmin(admin.ModelAdmin):
         "element_type",
         "variant",
         "order",
-        "affiliate_partner",
+        "affiliate_link",
         "post",
     )
     list_filter = ("element_type", "variant", "animation")
     search_fields = ("text", "slide__story__title")
     ordering = ("slide", "order", "id")
-    autocomplete_fields = ("slide", "affiliate_partner")
+    autocomplete_fields = ("slide", "affiliate_link")
     form = StoryElementAdminForm

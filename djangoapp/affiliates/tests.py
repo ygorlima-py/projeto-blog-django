@@ -4,7 +4,7 @@ from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import AffiliateCategory, AffiliatePartner
+from .models import AffiliateCategory, AffiliateLink, AffiliatePartner
 from .views import AffiliateListView
 
 
@@ -21,7 +21,6 @@ class AffiliateModelsTests(TestCase):
             'name': 'Parceiro de teste',
             'description': 'Descrição em texto simples.',
             'image_alt': 'Logotipo do parceiro de teste',
-            'affiliate_url': 'https://example.com/oferta',
         }
         data.update(overrides)
         return AffiliatePartner(**data)
@@ -41,17 +40,29 @@ class AffiliateModelsTests(TestCase):
         self.assertIn('description', error.exception.message_dict)
 
     def test_affiliate_url_rejects_non_https_links(self):
-        partner = self.make_partner(affiliate_url='http://example.com/oferta')
+        partner = self.make_partner()
+        partner.save()
+        link = AffiliateLink(
+            affiliate_partner=partner,
+            name='Link inválido',
+            url='http://example.com/oferta',
+        )
 
         with self.assertRaises(ValidationError) as error:
-            partner.full_clean(exclude=('image',))
+            link.full_clean()
 
-        self.assertIn('affiliate_url', error.exception.message_dict)
+        self.assertIn('url', error.exception.message_dict)
 
     def test_affiliate_url_accepts_https_links(self):
         partner = self.make_partner()
+        partner.save()
+        link = AffiliateLink(
+            affiliate_partner=partner,
+            name='Link válido',
+            url='https://example.com/oferta',
+        )
 
-        partner.full_clean(exclude=('image',))
+        link.full_clean()
 
     def test_category_rejects_unsafe_svg_icon(self):
         self.category.icon = SimpleUploadedFile(
@@ -124,7 +135,6 @@ class AffiliateListViewTests(TestCase):
             'name': 'Parceiro de teste',
             'description': 'Descrição em texto simples.',
             'image_alt': 'Logotipo do parceiro de teste',
-            'affiliate_url': 'https://example.com/oferta',
             'is_published': True,
         }
         data.update(overrides)
@@ -258,10 +268,17 @@ class AffiliateListViewTests(TestCase):
 
     def test_partner_link_is_rendered_as_sponsored_external_link(self):
         partner = self.make_partner()
+        link = AffiliateLink.objects.create(
+            affiliate_partner=partner,
+            name='Acessar oferta',
+            url='https://example.com/oferta',
+        )
 
         response = self.client.get(reverse('affiliates:list'))
 
         self.assertContains(response, partner.name)
+        self.assertContains(response, link.name)
+        self.assertContains(response, link.url)
         self.assertContains(response, 'target="_blank"')
         self.assertContains(
             response,

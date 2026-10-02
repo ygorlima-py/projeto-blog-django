@@ -73,15 +73,17 @@
                             <h2 class="affiliate-card-title">{{ partner.name }}</h2>
                             <p class="affiliate-card-description">{{ partner.description }}</p>
 
-                            <a
-                                class="affiliate-card-action"
-                                href="{{ partner.affiliate_url }}"
-                                target="_blank"
-                                rel="sponsored noopener noreferrer"
-                            >
-                                {{ partner.button_label }}
-                                <span aria-hidden="true">↗</span>
-                            </a>
+                            {% for link in partner.links.all %}
+                                <a
+                                    class="affiliate-card-action"
+                                    href="{{ link.url }}"
+                                    target="_blank"
+                                    rel="sponsored noopener noreferrer"
+                                >
+                                    {{ link.name }}
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+                            {% endfor %}
                         </div>
                     </article>
                 {% endfor %}

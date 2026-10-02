@@ -11,7 +11,8 @@ from django.db import transaction
 from mcp_server import MCPToolset
 from PIL import Image, UnidentifiedImageError
 
-from .models import Story, StorySlide, StoryElement
+from blog.models import Post
+from .models import AffiliateLink, Story, StorySlide, StoryElement
 
 
 ElementType = Literal['title', 'text', 'badge', 'cta']
@@ -25,21 +26,28 @@ FontWeight = Literal[100,200,300,400,500,600,700,800,900]
 FontStyle = Literal['normal', 'italic']
 
 _EDITABLE_ELEMENTS_FIELDS = {
-        "slide_id",
-        "element_type",
-        "text",
-        "font_size_rem",
-        "font_weight",
-        "font_style",
-        "variant",
-        "background_color",
-        "spacing_after_rem",
-        "position",
-        "animation",
-        "delay_ms",
-        "duration_ms",
-        "order",
-    }
+    "slide_id",
+    "element_type",
+    "text",
+    "font_size_rem",
+    "font_weight",
+    "font_style",
+    "font_color",
+    "background_color",
+    "spacing_below_the_element_rem",
+    "position",
+    "animation",
+    "delay_ms",
+    "duration_ms",
+    "order",
+    "affiliate_link_id",
+    "post_id",
+}
+
+_ELEMENT_API_TO_MODEL_FIELDS = {
+    "font_color": "variant",
+    "spacing_below_the_element_rem": "spacing_after_rem",
+}
 
 _EDITABLE_STORY_FIELDS = {
     "title",
@@ -139,7 +147,15 @@ class StoryTools(MCPToolset):
         Returns:
             A list of slide dictionaries, each containing an ``elements`` list.
         """
-        slides = StorySlide.objects.filter(story_id=story_id).order_by("order")
+        slides = (
+            StorySlide.objects
+            .filter(story_id=story_id)
+            .prefetch_related(
+                "elements__affiliate_link__affiliate_partner",
+                "elements__post",
+            )
+            .order_by("order")
+        )
         
         result = [                  
             {   "slide_id": slide.id,
@@ -163,9 +179,20 @@ class StoryTools(MCPToolset):
                         "spacing_below_the_element_rem": element.spacing_after_rem,
                         "position": element.position,
                         "animation": element.animation,
-                        "delay_ms_animation": element.delay_ms,
-                        "duration_ms_animation": element.duration_ms,
-                        "order_element":element.order,
+                        "delay_ms": element.delay_ms,
+                        "duration_ms": element.duration_ms,
+                        "order": element.order,
+                        "affiliate_link_id": element.affiliate_link_id,
+                        "affiliate_link_name": (
+                            element.affiliate_link.name
+                            if element.affiliate_link_id else None
+                        ),
+                        "affiliate_link_url": (
+                            element.affiliate_link.url
+                            if element.affiliate_link_id else None
+                        ),
+                        "post_id": element.post_id,
+                        "post_title": element.post.title if element.post else None,
                     }
                     for element in slide.elements.all()
                 ]
@@ -431,6 +458,8 @@ class StoryTools(MCPToolset):
         delay_ms: int = 0,
         duration_ms: int = 0,
         order: int = 0,
+        affiliate_link_id: int | None = None,
+        post_id: int | None = None,
         ) -> dict[str, Any]:
         """Create and persist a text element on an existing story slide.
 
@@ -455,9 +484,11 @@ class StoryTools(MCPToolset):
                 expressed in rem units.
             position: Vertical placement on the slide: top, center, or bottom.
             animation: Entry animation supported by the story editor.
-            delay_ms_animation: Animation delay in milliseconds.
-            duration_ms_animation: Animation duration in milliseconds.
-            order_element: Position used to order elements on the slide.
+            delay_ms: Animation delay in milliseconds.
+            duration_ms: Animation duration in milliseconds.
+            order: Position used to order elements on the slide.
+            affiliate_link_id: Optional ID of the affiliate link used by a CTA.
+            post_id: Optional ID of the related post used by a CTA.
 
         Returns:
             A success dictionary containing the new element ID, or an error
@@ -473,6 +504,25 @@ class StoryTools(MCPToolset):
                 "Error": f"Slide id={slide_id} not found, try with other id"
             }
             
+        affiliate_link = None
+        if affiliate_link_id is not None:
+            affiliate_link = (
+                AffiliateLink.objects
+                .select_related("affiliate_partner")
+                .filter(pk=affiliate_link_id)
+                .first()
+            )
+            if affiliate_link is None:
+                raise ValueError(
+                    f"Link afiliado id={affiliate_link_id} não encontrado."
+                )
+
+        post = None
+        if post_id is not None:
+            post = Post.objects.filter(pk=post_id).first()
+            if post is None:
+                raise ValueError(f"Post id={post_id} não encontrado.")
+
         element = StoryElement(
             slide=slide,
             element_type=element_type,
@@ -494,6 +544,8 @@ class StoryTools(MCPToolset):
             delay_ms=delay_ms,
             duration_ms=duration_ms,
             order=order,
+            affiliate_link=affiliate_link,
+            post=post,
         )
 
         element.full_clean()
@@ -522,6 +574,10 @@ class StoryTools(MCPToolset):
         Args:
             element_id: Database ID of the element to update.
             changes: Mapping of editable field names to their new values.
+                Use ``affiliate_link_id`` to associate a CTA with an
+                affiliate link, or ``None`` to remove that association.
+                Use ``post_id`` to associate a CTA with a related post, or
+                ``None`` to remove that association.
 
         Returns:
             A dictionary containing the element ID, the names of the updated
@@ -541,15 +597,48 @@ class StoryTools(MCPToolset):
         if element is None:
             raise ValueError(f"Elemento {element_id} não encontrado.")
         
+        changes = dict(changes)
+        affiliate_link_id_provided = "affiliate_link_id" in changes
+        affiliate_link_id = changes.pop("affiliate_link_id", None)
+        post_id_provided = "post_id" in changes
+        post_id = changes.pop("post_id", None)
+
         unknown_fields = set(changes) - _EDITABLE_ELEMENTS_FIELDS
         if unknown_fields:
             raise ValueError(
                 f"Campos não permitidos: {', '.join(sorted(unknown_fields))}"
             )
-        
-        
+
+        updated_fields = []
+        if affiliate_link_id_provided:
+            affiliate_link = None
+            if affiliate_link_id is not None:
+                affiliate_link = (
+                    AffiliateLink.objects
+                    .select_related("affiliate_partner")
+                    .filter(pk=affiliate_link_id)
+                    .first()
+                )
+                if affiliate_link is None:
+                    raise ValueError(
+                        f"Link afiliado id={affiliate_link_id} não encontrado."
+                    )
+            element.affiliate_link = affiliate_link
+            updated_fields.append("affiliate_link_id")
+
+        if post_id_provided:
+            post = None
+            if post_id is not None:
+                post = Post.objects.filter(pk=post_id).first()
+                if post is None:
+                    raise ValueError(f"Post id={post_id} não encontrado.")
+            element.post = post
+            updated_fields.append("post_id")
+
         for field, value in changes.items():
-            setattr(element, field, value)
+            model_field = _ELEMENT_API_TO_MODEL_FIELDS.get(field, field)
+            setattr(element, model_field, value)
+        updated_fields.extend(changes)
             
         try:
             element.full_clean()
@@ -560,7 +649,7 @@ class StoryTools(MCPToolset):
         
         return {
             "element_id": element.id,
-            "updated_fields": list(changes),
+            "updated_fields": updated_fields,
             "message": f"Element {element.id} updated successfully.",
         }
     

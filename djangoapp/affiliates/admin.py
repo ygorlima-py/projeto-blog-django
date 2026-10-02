@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import AffiliateCategory, AffiliatePartner
+from .models import (
+    AffiliateCategory,
+    AffiliatePartner,
+    AffiliateLink,
+)
 
 
 @admin.register(AffiliateCategory)
@@ -36,7 +40,7 @@ class AffiliatePartnerAdmin(admin.ModelAdmin):
             'style="object-fit: contain; border-radius: 50%;">',
             obj.cta_icon.url,
         )
-        
+
     @admin.display(description="Prévia da imagem do afiliado")
     def image_preview(self, obj):
         if not obj.image:
@@ -57,4 +61,38 @@ class AffiliatePartnerAdmin(admin.ModelAdmin):
             obj.image.url,
         )
         
-    
+@admin.register(AffiliateLink)
+class AffiliateLinkAdmin(admin.ModelAdmin):
+    list_display = (
+        "cta_icon_preview",
+        "name",
+        "affiliate_partner",
+        "url",
+        "updated_at",
+    )
+    list_filter = (
+        "affiliate_partner",
+    )
+    search_fields = (
+        "name",
+        "description",
+        "affiliate_partner__name",
+    )
+    autocomplete_fields = (
+        "affiliate_partner",
+    )
+    ordering = (
+        "updated_at",
+        "created_at",
+    )
+
+    @admin.display(description="Ícone do CTA")
+    def cta_icon_preview(self, obj):
+        if not obj.affiliate_partner.cta_icon:
+            return "Será gerado quando o parceiro for salvo."
+
+        return format_html(
+            '<img src="{}" width="48" height="48" '
+            'style="object-fit: contain; border-radius: 50%;">',
+            obj.affiliate_partner.cta_icon.url,
+        )
