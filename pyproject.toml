@@ -1,6 +1,6 @@
 [project]
 name = "asia-de-perto"
-version = "0.1.0"
+version = "1.0.0"
 description = "Blog Asia de Perto"
 requires-python = ">=3.11"
 dependencies = [
