@@ -65,6 +65,6 @@ def create_square_icon(source, size=96, padding=10):
             method=6,
         )
 
-    source.close()
+    source.seek(0)
 
     return ContentFile(output.getvalue())
