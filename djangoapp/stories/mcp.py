@@ -92,7 +92,6 @@ def _decode_story_image(
     return image_bytes, safe_filename
 
 
-
 class StoryTools(MCPToolset):
     """MCP tools for reading and editing stories and their slide elements.
 
