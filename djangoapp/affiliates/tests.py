@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import AffiliateCategory, AffiliateLink, AffiliatePartner
+from .mcp import AffiliateTools
 from .views import AffiliateListView
 
 
@@ -314,6 +315,7 @@ class AffiliateListViewTests(TestCase):
         self.assertContains(response, published_partner.name)
         self.assertNotContains(response, draft_partner.name)
 
+
     def test_categories_respect_configured_order(self):
         self.category.order = 20
         self.category.save(update_fields=('order',))
@@ -419,3 +421,78 @@ class AffiliateListViewTests(TestCase):
             response,
             f'/parceiros/categoria/{inactive_category.slug}/',
         )
+
+
+class AffiliateMCPTests(TestCase):
+    def setUp(self):
+        self.category = AffiliateCategory.objects.create(
+            name='Transportes',
+            slug='transportes',
+        )
+        self.tools = AffiliateTools()
+
+    def make_partner(self, **overrides):
+        data = {
+            'category': self.category,
+            'name': '12Go Asia',
+            'description': 'Plataforma para reservar transportes.',
+            'image_alt': 'Imagem da 12Go Asia',
+            'affiliate_url': 'https://12go.asia/pt',
+            'button_label': 'Reservar transporte',
+            'is_published': True,
+        }
+        data.update(overrides)
+        return AffiliatePartner.objects.create(**data)
+
+    def test_list_affiliates_partner_returns_partner_and_related_links(self):
+        partner = self.make_partner()
+        link = AffiliateLink.objects.create(
+            affiliate_partner=partner,
+            name='Transporte Bangkok Ayutthaya',
+            url='https://12go.asia/pt/travel/Bangkok/Ayutthaya/',
+            description='Consultar horários e preços entre Bangkok e Ayutthaya.',
+        )
+
+        result = self.tools.list_affiliates_partner()
+
+        self.assertEqual(
+            result,
+            [
+                {
+                    'id': partner.id,
+                    'name': partner.name,
+                    'category': self.category.name,
+                    'description': partner.description,
+                    'main_url': partner.affiliate_url,
+                    'affiliate_links': [
+                        {
+                            'id': link.id,
+                            'name': link.name,
+                            'url': link.url,
+                            'description': link.description,
+                        },
+                    ],
+                },
+            ],
+        )
+
+    def test_list_affiliates_partner_returns_unpublished_and_inactive_partners(self):
+        unpublished = self.make_partner(
+            name='Parceiro não publicado',
+            is_published=False,
+        )
+        inactive_category = AffiliateCategory.objects.create(
+            name='Categoria inativa',
+            slug='categoria-inativa-mcp',
+            is_active=False,
+        )
+        inactive = self.make_partner(
+            name='Parceiro de categoria inativa',
+            category=inactive_category,
+        )
+
+        result = self.tools.list_affiliates_partner()
+        result_ids = {partner['id'] for partner in result}
+
+        self.assertIn(unpublished.id, result_ids)
+        self.assertIn(inactive.id, result_ids)
