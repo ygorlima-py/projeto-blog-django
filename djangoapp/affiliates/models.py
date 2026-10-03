@@ -115,6 +115,18 @@ class AffiliatePartner(models.Model):
         max_length=150,
         verbose_name='texto alternativo da imagem',
     )
+    affiliate_url = models.URLField(
+        max_length=1000,
+        blank=True,
+        null=True,
+        validators=[validate_https_url],
+        verbose_name='link principal de afiliado',
+    )
+    button_label = models.CharField(
+        max_length=40,
+        default='Conhecer parceiro',
+        verbose_name='texto do botão',
+    )
     order = models.PositiveSmallIntegerField(default=0, verbose_name='ordem')
     is_published = models.BooleanField(default=False, verbose_name='publicado')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='criado em')

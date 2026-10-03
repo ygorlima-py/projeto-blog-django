@@ -39,6 +39,14 @@ class AffiliateModelsTests(TestCase):
 
         self.assertIn('description', error.exception.message_dict)
 
+    def test_partner_affiliate_url_rejects_non_https_links(self):
+        partner = self.make_partner(affiliate_url='http://example.com/oferta')
+
+        with self.assertRaises(ValidationError) as error:
+            partner.full_clean(exclude=('image',))
+
+        self.assertIn('affiliate_url', error.exception.message_dict)
+
     def test_affiliate_url_rejects_non_https_links(self):
         partner = self.make_partner()
         partner.save()
@@ -135,6 +143,8 @@ class AffiliateListViewTests(TestCase):
             'name': 'Parceiro de teste',
             'description': 'Descrição em texto simples.',
             'image_alt': 'Logotipo do parceiro de teste',
+            'affiliate_url': 'https://example.com/parceiro',
+            'button_label': 'Conhecer parceiro',
             'is_published': True,
         }
         data.update(overrides)
@@ -266,7 +276,7 @@ class AffiliateListViewTests(TestCase):
         )
         self.assertContains(response, 'Nenhum parceiro encontrado')
 
-    def test_partner_link_is_rendered_as_sponsored_external_link(self):
+    def test_partner_specific_links_are_not_rendered_on_public_page(self):
         partner = self.make_partner()
         link = AffiliateLink.objects.create(
             affiliate_partner=partner,
@@ -277,13 +287,20 @@ class AffiliateListViewTests(TestCase):
         response = self.client.get(reverse('affiliates:list'))
 
         self.assertContains(response, partner.name)
-        self.assertContains(response, link.name)
-        self.assertContains(response, link.url)
-        self.assertContains(response, 'target="_blank"')
-        self.assertContains(
-            response,
-            'rel="sponsored noopener noreferrer"',
+        self.assertContains(response, partner.affiliate_url)
+        self.assertNotContains(response, link.name)
+        self.assertNotContains(response, link.url)
+
+    def test_partner_main_link_and_button_are_rendered(self):
+        partner = self.make_partner(
+            affiliate_url='https://example.com/parceiro-principal',
+            button_label='Acessar parceiro',
         )
+
+        response = self.client.get(reverse('affiliates:list'))
+
+        self.assertContains(response, partner.affiliate_url)
+        self.assertContains(response, partner.button_label)
 
     def test_public_page_renders_published_partner_and_hides_draft(self):
         published_partner = self.make_partner(name='Parceiro publicado')
