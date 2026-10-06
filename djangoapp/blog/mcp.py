@@ -19,8 +19,25 @@ def _calculate_content_revision(content: str) -> str:
     ).hexdigest()
 
 class PostTools(MCPToolset):
+    """MCP tools for reading, creating, and updating blog posts.
+
+    Read tools provide post identifiers and current state. Write tools validate
+    their input and keep database operations atomic.
+    """
     
     def list_all_posts(self) -> list[dict[str, Any]]:
+        """List all blog posts with summary metadata.
+
+        Use this tool to discover existing posts, find a post ID, or choose a
+        post to inspect or update. Results are ordered from newest to oldest
+        and include the title, excerpt, category, author, tags, and timestamps.
+        This tool does not return content HTML or its revision hash; call
+        `show_post_detail` with the returned ID to obtain them.
+
+        Returns:
+            A list of posts with summary metadata. Returns an empty list when
+            no posts exist.
+        """
         posts = (
             Post
             .objects
@@ -52,6 +69,25 @@ class PostTools(MCPToolset):
         return results
     
     def show_post_detail(self, id:int):
+        """Return complete data and the current state of a post.
+
+        Use this tool to read a post's complete HTML and always before changing
+        its content with `update_post`. The `content` field contains the
+        current HTML, including elements such as paragraphs, lists, and tables.
+        `content_revision_hash` identifies that exact content version and must
+        be sent unchanged when applying patches. If the hash is stale, read the
+        post again before attempting another update.
+
+        Args:
+            id: Numeric ID of the post to retrieve.
+
+        Returns:
+            A dictionary with metadata, publication status, cover image,
+            complete content HTML, and `content_revision_hash`.
+
+        Raises:
+            ValueError: If no post exists with the supplied ID.
+        """
         post = (
             Post
             .objects
@@ -98,6 +134,28 @@ class PostTools(MCPToolset):
         self,
         post_data: PostCreateInput,
     ) -> dict[str, Any]:
+        """Create a new blog post as a draft after validating its input.
+
+        Use this tool only to create a post; use `update_post` to modify an
+        existing post. `post_data.content` must contain the post's complete
+        initial HTML, while `title`, `excerpt`, and `content` are required. A
+        slug is generated from the title when it is omitted, null, or empty.
+        Every supplied category or tag ID must exist. The post is always
+        created with `is_published=False`.
+
+        Args:
+            post_data: Complete creation data. `category_id` is optional;
+                `tag_ids` represents the complete initial tag list, and IDs do
+                not need to be repeated.
+
+        Returns:
+            A dictionary with the new post's ID, title, slug, category, tags,
+            and publication status.
+
+        Raises:
+            ValueError: If text fields are empty or exceed their limits, a
+                category or tag does not exist, or model validation fails.
+        """
         clean_title = post_data.title.strip()
         clean_excerpt = post_data.excerpt.strip()
         clean_slug = post_data.slug.strip() if post_data.slug else ""
@@ -181,6 +239,47 @@ class PostTools(MCPToolset):
         content_revision_hash: str | None = None,
         content_patches: list[ContentPatchInput] | None = None,
         ) -> dict[str, Any]:
+        """Update fields and specific HTML fragments of an existing post.
+
+        Use `changes` to modify the title, slug, excerpt, category, or complete
+        tag list. Use `content_patches` to edit only HTML fragments while
+        preserving all other HTML; do not send complete content through
+        `changes`. At least one change or patch is required. The operation is
+        atomic: if any validation fails, none of the changes are saved.
+
+        To change content, call `show_post_detail` first. Copy an exact
+        `target_html` from `content` that is wide enough to occur only once,
+        provide the new HTML in `replacement_html`, and send the
+        `content_revision_hash` returned by the read. Patches run in list order,
+        and each patch searches the result produced by earlier patches. If the
+        hash is stale, read the post again and rebuild patches from the newest
+        version.
+
+        When using `changes`, omitting a field preserves its current value.
+        Sending `category_id=null` removes the category; omitting `tag_ids`
+        preserves tags, while `tag_ids=[]` removes all tags and a non-empty
+        list replaces the complete tag set. Sending a null or empty slug
+        generates a new slug from the post's current title.
+
+        Args:
+            post_id: Numeric ID of the post to update.
+            changes: Common fields to modify. Omit or send null when the update
+                contains only content patches.
+            content_revision_hash: Hash returned by the latest post read. It is
+                required when `content_patches` is not empty.
+            content_patches: List of exact HTML replacements. Each
+                `target_html` must occur exactly once in the content when its
+                patch is applied.
+
+        Returns:
+            A dictionary with updated fields, category, tags, update timestamp,
+            and the new `content_revision_hash`.
+
+        Raises:
+            ValueError: If the post, category, or a tag does not exist; if no
+                change is sent; if the hash is missing or stale; if a patch
+                target is not unique; or if any value fails validation.
+        """
         
         post = (
             Post.objects
