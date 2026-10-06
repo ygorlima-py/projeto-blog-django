@@ -113,15 +113,26 @@ DJANGO_MCP_GLOBAL_SERVER_CONFIG = {
     "instructions": """
 Este é o servidor MCP do blog Asia de Perto.
 
-Ele gerencia os recursos do blog disponibilizados pelas ferramentas,
-começando por Stories e futuramente incluindo Posts e Afiliados.
+Ele oferece ferramentas editoriais para três recursos do blog:
+
+- Posts: listar e consultar posts, criar novos posts como rascunho e atualizar
+  seus metadados, categoria, tags ou trechos específicos do conteúdo HTML.
+  A publicação não é controlada por estas ferramentas. Para editar o conteúdo,
+  leia primeiro o post, use o `content_revision_hash` retornado e envie patches
+  HTML exatos; não reenvie o conteúdo inteiro quando apenas um trecho mudar.
+- Stories: consultar stories, slides e elementos; criar stories como rascunho,
+  slides e elementos; e atualizar seus campos editáveis. A publicação também
+  permanece fora do escopo das ferramentas MCP.
+- Afiliados: consultar parceiros e seus links para uso editorial. Os registros
+  de afiliados são somente leitura neste servidor.
 
 Antes de alterar qualquer recurso:
 - consulte os dados atuais;
 - use os IDs retornados pelas ferramentas;
 - altere somente o que foi solicitado.
 
-As regras específicas de cada recurso estão descritas nas próprias ferramentas.
+As regras, campos permitidos e formatos de cada operação estão descritos nas
+docstrings e nos schemas das ferramentas correspondentes.
 """
 }
 
