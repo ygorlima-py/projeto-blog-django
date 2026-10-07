@@ -33,6 +33,27 @@ class RichTextSanitizationTests(TestCase):
         self.assertNotIn('onerror=', post.content)
         self.assertNotIn('javascript:', post.content)
 
+    def test_cta_presentation_styles_survive_sanitization(self):
+        content = (
+            '<p style="padding: 0.75rem 1rem; '
+            'border-left: 4px solid #123d3a; '
+            'background-color: #f4f8f7;">'
+            '<a href="https://example.com" '
+            'style="display: inline-block; padding: 0.45rem 0.75rem; '
+            'border: 1px solid #123d3a; border-radius: 0.35rem; '
+            'vertical-align: middle;">Ver oferta</a>'
+            '</p>'
+        )
+
+        sanitized = sanitize_rich_text(content)
+
+        self.assertIn('padding: 0.75rem 1rem;', sanitized)
+        self.assertIn('border-left: 4px solid #123d3a;', sanitized)
+        self.assertIn('padding: 0.45rem 0.75rem;', sanitized)
+        self.assertIn('border: 1px solid #123d3a;', sanitized)
+        self.assertIn('border-radius: 0.35rem;', sanitized)
+        self.assertIn('vertical-align: middle;', sanitized)
+
     def test_page_content_is_sanitized_before_being_rendered(self):
         page = Page.objects.create(
             title='Página segura',

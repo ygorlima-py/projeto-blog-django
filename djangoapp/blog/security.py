@@ -86,8 +86,18 @@ RICH_TEXT_CSS_SANITIZER = CSSSanitizer(
         'line-height',
         'text-align',
         'text-decoration',
-        
-        
+
+        # Componentes visuais editoriais, como CTAs e links em destaque.
+        'padding',
+        'padding-bottom',
+        'padding-left',
+        'padding-right',
+        'padding-top',
+        'border',
+        'border-left',
+        'border-radius',
+        'vertical-align',
+
         # Imagens
         'width',
         'height',
