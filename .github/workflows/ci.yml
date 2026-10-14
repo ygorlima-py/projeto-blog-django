@@ -44,7 +44,8 @@ jobs:
       SECRET_KEY: ci-only-secret-key-that-is-longer-than-fifty-characters-123456
       DEBUG: '1'
       ALLOWED_HOSTS: localhost,127.0.0.1
-
+      AGENT_BROKER_URL: amqp://guest:guest@127.0.0.1:567
+      
     steps:
       - name: Baixar código
         uses: actions/checkout@v4

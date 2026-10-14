@@ -50,7 +50,7 @@
     "reportUnknownLambdaType": "none",
     "reportUnknownParameterType": "none"
   },
-  "python.defaultInterpreterPath": "./venv/bin/python",
+  "python.defaultInterpreterPath": "${workspaceFolder}/agent_app/.venv/bin/python3",
   "python.analysis.typeCheckingMode": "basic",
   "cSpell.enabled": true,
   "python.formatting.provider": "none",
