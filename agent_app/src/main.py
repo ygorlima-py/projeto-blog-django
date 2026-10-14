@@ -1,56 +1,25 @@
-from agent import SupervisoryAgent, AgentBase
-from infra import load_llm
+from __future__ import annotations
+from celery import Celery
+from typing import Any
 
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.types import Command
+from agent import SupervisoryAgent
+from celery_queue.task import _run_telegram_agent
+from config import load_settings
 
-from rich import print
 import asyncio
 
+settings = load_settings()
 
-async def main(graph: AgentBase, user_input: str | Command, thread_id: str,):
+app = Celery(
+    "agent_app",
+    broker=settings.uri_broker,
+)
 
-    async for message_chunk, _ in graph.astream(user_input=user_input, thread_id=thread_id):
-        if isinstance(message_chunk.content, str):
-            print(message_chunk.content, end="", flush=True)
+@app.task(name="agent.run_telegram_agent")
+def run_telegram_agent(user_input: str, thread_id: str) -> dict[str, Any]:
+    return asyncio.run(_run_telegram_agent(user_input, thread_id, agent=SupervisoryAgent))
 
-    interrupt = graph.get_pending_interrupt(thread_id)
 
-    if interrupt is not None:
-        action_request = interrupt.value["action_requests"][0]
-        review_configs = interrupt.value["review_configs"][0]
-        
-        args = []
-        for key, value in action_request.get("args", {}).items():
-            if isinstance(value, dict):
-                for nested_key, nested_value in value.items():
-                    args.append(f"{nested_key}: {nested_value}")
-            else:
-                args.append(f"{key}: {value}")
-            
-        print(
-            f"\nInterrupção pendente: {action_request.get("name", "")}"
-            f"\nArgumentos: {', '.join(args)}"
-            f"\nDecisão: {', '.join(review_configs.get("allowed_decisions"))}"
-            )
-    
-if __name__ == "__main__":
-    
-    async def runner() -> None:
-        graph = SupervisoryAgent(
-            model=load_llm(),
-            checkpointer=InMemorySaver(),
-        )
 
-        while True:
-            user_input = input("\nVocê: ")
 
-            if user_input.lower() in {"sair", "exit", "quit"}:
-                break
 
-            await main(
-                graph,
-                user_input,
-                "teste",
-            )
-    asyncio.run(runner())

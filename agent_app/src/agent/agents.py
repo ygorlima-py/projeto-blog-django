@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import ClassVar, Any, cast
+from typing import ClassVar, Any
 from collections.abc import AsyncIterator
 
 from langchain.agents import create_agent
@@ -10,7 +10,6 @@ from langchain_core.tools.base import BaseTool
 from langchain_core.runnables import RunnableConfig
 from langchain.messages import HumanMessage
 from langchain.agents.middleware.types import InputAgentState
-from langchain_core.messages import BaseMessageChunk
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.types import Command
 
@@ -41,7 +40,6 @@ class AgentBase(ABC):
         self.model = model
         self.checkpointer = checkpointer
         self._agent = None
-        self._pending_interrupts: dict[str, tuple[Any, ...]] = {}
     
     async def load_tools(self) -> list[BaseTool] | None:
         if not self.tools:
@@ -90,12 +88,10 @@ class AgentBase(ABC):
         self,
         user_input: str | Command,
         thread_id: str,
-        )-> AsyncIterator[tuple[Any, dict[str, Any]]]:
+        ) -> AsyncIterator[dict[str, Any]]:
         
         if self._agent is None:
             self._agent = await self.build_agent()
-        
-        self._pending_interrupts.pop(thread_id, None)
         
         config: RunnableConfig = {"configurable": {"thread_id": thread_id,}}
         
@@ -107,37 +103,27 @@ class AgentBase(ABC):
         else:
             _input = {"messages": [HumanMessage(content=user_input)]}
         
-        stream = cast(
-            AsyncIterator[dict[str, Any]],
-            self._agent.astream(
-                _input,
-                config=config,
-                stream_mode=["messages", "values"],
-                version="v2",
-            ),
+        stream = await self._agent.astream_events(
+            _input,
+            config=config,
+            version="v3",
         )
-                   
-        async for chunk in stream:
-            if chunk["type"] == "messages":
-                message_chunk, metadata = chunk["data"]
-                
-                yield message_chunk, metadata
 
-            elif chunk["type"] == "values":
-                interrupts = chunk.get("interrupts", ())
+        async for message in stream.messages:
+            async for token in message.text:
+                yield {
+                    "type": "token",
+                    "content": token,
+                }
+        
+        if await stream.interrupted():
+            interrupts = await stream.interrupts()
 
-                if interrupts:
-                    self._pending_interrupts[thread_id] = interrupts
-                    return
-
-
-    def get_pending_interrupt(self, thread_id: str) -> Any | None:
-        interrupts = self._pending_interrupts.pop(thread_id, ())
-
-        if interrupts:
-            return interrupts[0]
-
-        return None
+            if interrupts:
+                yield {
+                    "type": "interrupt",
+                    "data": interrupts[0].value,
+                }
         
 class SupervisoryAgent(AgentBase):
     blocked_tools = (
@@ -186,20 +172,10 @@ if __name__ == "__main__":
             )
     
     async def test():
-        async for message_chunk, _ in graph.astream(user_input="Crie um post Aleatório", thread_id='teste'):
-            if isinstance(message_chunk.content, str):
-                print(message_chunk.content, end="", flush=True)
-
-        interrupt = graph.get_pending_interrupt('test')
-           
-        if interrupt is not None:
-            action_request = interrupt.value["action_requests"][0]
-            review_configs = interrupt.value["review_configs"][0]
-            decisions = [f"{keys}: {value}"for keys, value in action_request.get("args", {}).items()]
-            print(
-                f"\nInterrupção pendente: {action_request.get("name", "")}"
-                f"\nArgumentos: {','.join(decisions)}"
-                f"\nDecisão: {', '.join(review_configs.get("allowed_decisions"))}"
-                )
+        async for chunk in graph.astream(
+            user_input="Crie um post Aleatório",
+            thread_id="teste",
+        ):
+            print(chunk)
             
     asyncio.run(test())

@@ -22,6 +22,8 @@ DATA_DIR = BASE_DIR.parent / 'data' / 'web'
 # DOTENV
 load_dotenv(BASE_DIR.parent / 'dotenv_files' / '.env', override=False)
 
+AGENT_BROKER_URL = os.environ["AGENT_BROKER_URL"]
+
 
 def env_bool(name, default=False):
     value = os.getenv(name)
@@ -96,6 +98,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "mcp_server",
+    "agent",
 
     # Django Summernote
     'project.apps.ProjectSummernoteConfig',
