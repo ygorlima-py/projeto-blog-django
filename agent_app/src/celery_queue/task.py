@@ -1,6 +1,9 @@
 from typing import Any, Literal
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegramify_markdown import convert
+
 import secrets
+import time
 
 from langgraph.types import Command
 
@@ -45,6 +48,7 @@ async def _run_telegram_agent(
         
         draft_id = secrets.randbits(63) or 1
         full_text = ""
+        last_draft_at = 0.0
         chat_id = int(thread_id)
 
         graph = agent(
@@ -60,12 +64,18 @@ async def _run_telegram_agent(
                 if event["type"] == "chunk":
                     chunk = event["content"]
                     full_text += chunk
-                                    
-                    await bot.send_message_draft(
-                        chat_id=chat_id,
-                        draft_id=draft_id,
-                        text=full_text,
-                    )
+
+                    now = time.monotonic()
+                    if now - last_draft_at >= 1.0:
+                        rendered_text, entities = convert(full_text)
+
+                        await bot.send_message_draft(
+                            chat_id=chat_id,
+                            draft_id=draft_id,
+                            text=rendered_text,
+                            entities=[entity.to_dict() for entity in entities],
+                        )
+                        last_draft_at = now
         
                 elif event["type"] == "interrupt":
                     interruption = event["data"]
@@ -104,9 +114,12 @@ async def _run_telegram_agent(
                                 "interrupt": interruption,
                                 }
                     
+            rendered_text, entities = convert(full_text)
+
             await bot.send_message(
                         chat_id=chat_id,
-                        text=full_text,
+                        text=rendered_text,
+                        entities=[entity.to_dict() for entity in entities],
                     )
             print(full_text)
             return {
