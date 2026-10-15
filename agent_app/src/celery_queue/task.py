@@ -114,13 +114,14 @@ async def _run_telegram_agent(
                                 "interrupt": interruption,
                                 }
                     
-            rendered_text, entities = convert(full_text)
+            if full_text.strip():
+                rendered_text, entities = convert(full_text)
 
-            await bot.send_message(
-                        chat_id=chat_id,
-                        text=rendered_text,
-                        entities=[entity.to_dict() for entity in entities],
-                    )
+                await bot.send_message(
+                            chat_id=chat_id,
+                            text=rendered_text,
+                            entities=[entity.to_dict() for entity in entities],
+                        )
 
             return {
                 "status": "completed",
