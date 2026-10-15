@@ -114,9 +114,9 @@ async def _run_telegram_agent(
                                 "interrupt": interruption,
                                 }
                     
-            if full_text.strip():
-                rendered_text, entities = convert(full_text)
+            rendered_text, entities = convert(full_text)
 
+            if rendered_text.strip():
                 await bot.send_message(
                             chat_id=chat_id,
                             text=rendered_text,
