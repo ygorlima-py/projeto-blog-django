@@ -1,6 +1,6 @@
 from __future__ import annotations
 from celery import Celery
-from typing import Any
+from typing import Any, Literal
 
 from agent import SupervisoryAgent
 from celery_queue.task import _run_telegram_agent
@@ -16,8 +16,13 @@ app = Celery(
 )
 
 @app.task(name="agent.run_telegram_agent")
-def run_telegram_agent(user_input: str, thread_id: str) -> dict[str, Any]:
-    return asyncio.run(_run_telegram_agent(user_input, thread_id, agent=SupervisoryAgent))
+def run_telegram_agent(
+    user_input: str,
+    thread_id: str,
+    type: Literal["text", "decision"],
+    ) -> dict[str, Any]:
+    
+    return asyncio.run(_run_telegram_agent(user_input, thread_id, _type=type, agent=SupervisoryAgent))
 
 
 

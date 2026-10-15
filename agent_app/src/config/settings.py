@@ -12,6 +12,7 @@ class Settings:
     uri_broker: str
     uri_checkpointer: str
     checkpointer: bool
+    telegram_token: str | None
     
 def load_settings() -> Settings:
     llm_token = os.getenv("LLM_API_KEY")
@@ -20,6 +21,7 @@ def load_settings() -> Settings:
     uri_broker = os.getenv("URL_BROKER")
     uri_checkpointer = os.getenv("DB_CHECKPOINTER_URI")
     _checkpointer = os.getenv("CHECKPOINTER", "0")
+    telegram_token = os.getenv("TELEGRAM_TOKEN")
     
     if (
         not llm_token
@@ -50,6 +52,7 @@ def load_settings() -> Settings:
         uri_broker=uri_broker,
         uri_checkpointer=uri_checkpointer,
         checkpointer=checkpointer,
+        telegram_token=telegram_token,
     )
         
     

@@ -110,10 +110,10 @@ class AgentBase(ABC):
         )
 
         async for message in stream.messages:
-            async for token in message.text:
+            async for chunk in message.text:
                 yield {
-                    "type": "token",
-                    "content": token,
+                    "type": "chunk",
+                    "content": chunk,
                 }
         
         if await stream.interrupted():
