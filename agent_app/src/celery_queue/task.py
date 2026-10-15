@@ -121,7 +121,7 @@ async def _run_telegram_agent(
                         text=rendered_text,
                         entities=[entity.to_dict() for entity in entities],
                     )
-            print(full_text)
+
             return {
                 "status": "completed",
                 "thread_id": thread_id,
