@@ -39,12 +39,11 @@ services:
 
   rabbitmq-agent:
     image: rabbitmq:4.2.9-management
+    env_file:
+    - ./dotenv_files/.env
     ports:
       - "127.0.0.1:5673:5672"
       - "127.0.0.1:15673:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: agent_app
-      RABBITMQ_DEFAULT_PASS: agent_app_dev
     volumes:
       - ./data/rabbitmq:/var/lib/rabbitmq
     healthcheck:
