@@ -1,7 +1,9 @@
 from langchain.mcp import MCPAdapter
 from fastmcp.client import Client
+from fastmcp.client.transports import StreamableHttpTransport
 from mcp.shared.exceptions import MCPError
 from langchain_core.tools.base import BaseTool
+from urllib.parse import urlparse
 
 from rich import print
 
@@ -30,11 +32,22 @@ class ToolsMCP:
     
     async def aget_tools(self, blocked: list[str] | None = None) -> list[BaseTool]:
         
+        parsed_url = urlparse(self.url)
+
+        headers = {}
+        if parsed_url.hostname == "djangoapp":
+            headers["X-Forwarded-Proto"] = "https"
+            
+        transport = StreamableHttpTransport(
+            self.url,
+            headers=headers,
+        )
+
         if not self.token:
             raise ValueError("Add token bareer in env files")
         
         try:
-            async with MCPAdapter(Client(self.url, auth=self.token)) as adapter:
+            async with MCPAdapter(Client(transport, auth=self.token)) as adapter:
             
                 tools = await adapter.list_tools()
            
