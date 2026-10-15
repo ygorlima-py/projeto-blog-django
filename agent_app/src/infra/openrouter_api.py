@@ -11,6 +11,9 @@ def load_llm() -> ChatOpenAI:
         openai_api_key=settings.llm_token, #type: ignore
         base_url="https://openrouter.ai/api/v1",
         max_retries=3,
+        model_kwargs={
+            "parallel_tool_calls": False,
+        },
     )
     
 def compress_context_model() -> ChatOpenAI:
@@ -22,6 +25,7 @@ def compress_context_model() -> ChatOpenAI:
         base_url="https://openrouter.ai/api/v1",
         max_retries=3,
     )
+    
 
 if __name__ == "__main__":
     from rich import print

@@ -13,6 +13,20 @@ services:
       - ./dotenv_files/.env
     depends_on:
       - psql
+
+  agent_worker:
+    container_name: agent_worker
+    build:
+      context: ./agent_app
+      dockerfile: Dockerfile
+    env_file:
+      - ./agent_app/.env
+    command: ["python", "-m", "celery", "-A", "main:app", "worker", "--loglevel=INFO", "--concurrency=1"]
+    depends_on:
+      - djangoapp
+      - psql
+      - rabbitmq-agent
+
   psql:
     container_name: psql
     image: postgres:17-alpine
@@ -22,3 +36,20 @@ services:
       - ./data/postgres/data:/var/lib/postgresql/data/
     env_file:
       - ./dotenv_files/.env
+
+  rabbitmq-agent:
+    image: rabbitmq:4.2.9-management
+    ports:
+      - "127.0.0.1:5673:5672"
+      - "127.0.0.1:15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: agent_app
+      RABBITMQ_DEFAULT_PASS: agent_app_dev
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
