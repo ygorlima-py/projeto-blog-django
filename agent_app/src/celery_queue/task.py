@@ -122,6 +122,11 @@ async def _run_telegram_agent(
                             text=rendered_text,
                             entities=[entity.to_dict() for entity in entities],
                         )
+            elif full_text.strip():
+                await bot.send_message(
+                            chat_id=chat_id,
+                            text=full_text,
+                        )
 
             return {
                 "status": "completed",
