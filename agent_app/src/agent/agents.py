@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import ClassVar, Any
 from collections.abc import AsyncIterator
+from contextlib import AsyncExitStack, asynccontextmanager
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware, SummarizationMiddleware
@@ -39,7 +40,6 @@ class AgentBase(ABC):
       
         self.model = model
         self.checkpointer = checkpointer
-        self._agent = None
     
     async def load_tools(self) -> list[BaseTool] | None:
         if not self.tools:
@@ -72,58 +72,63 @@ class AgentBase(ABC):
             checkpointer=self.checkpointer,
             system_prompt=self.system_prompt,
         )
+
+    @asynccontextmanager
+    async def _agent_context(self):
+        """Keep the MCP session open until the agent finishes its run."""
+        async with AsyncExitStack() as stack:
+            if self.tools is not None:
+                await stack.enter_async_context(self.tools)
+
+            yield await self.build_agent()
     
     async def ainvoke(
             self,
             _input,
             config: RunnableConfig | None = None,
         )-> dict[str, Any]:
-        
-        if not self._agent:
-            self._agent = await self.build_agent()
-            
-        return await self._agent.ainvoke(_input, config)
+
+        async with self._agent_context() as agent:
+            return await agent.ainvoke(_input, config)
     
     async def astream(
         self,
         user_input: str | Command,
         thread_id: str,
         ) -> AsyncIterator[dict[str, Any]]:
-        
-        if self._agent is None:
-            self._agent = await self.build_agent()
-        
-        config: RunnableConfig = {"configurable": {"thread_id": thread_id,}}
-        
-        _input: InputAgentState | Command
-        
-        if isinstance(user_input, Command):
-            _input = user_input   
-        
-        else:
-            _input = {"messages": [HumanMessage(content=user_input)]}
-        
-        stream = await self._agent.astream_events(
-            _input,
-            config=config,
-            version="v3",
-        )
 
-        async for message in stream.messages:
-            async for chunk in message.text:
-                yield {
-                    "type": "chunk",
-                    "content": chunk,
-                }
-        
-        if await stream.interrupted():
-            interrupts = await stream.interrupts()
+        async with self._agent_context() as agent:
+            config: RunnableConfig = {"configurable": {"thread_id": thread_id,}}
 
-            if interrupts:
-                yield {
-                    "type": "interrupt",
-                    "data": interrupts[0].value,
-                }
+            _input: InputAgentState | Command
+
+            if isinstance(user_input, Command):
+                _input = user_input
+
+            else:
+                _input = {"messages": [HumanMessage(content=user_input)]}
+
+            stream = await agent.astream_events(
+                _input,
+                config=config,
+                version="v3",
+            )
+
+            async for message in stream.messages:
+                async for chunk in message.text:
+                    yield {
+                        "type": "chunk",
+                        "content": chunk,
+                    }
+
+            if await stream.interrupted():
+                interrupts = await stream.interrupts()
+
+                if interrupts:
+                    yield {
+                        "type": "interrupt",
+                        "data": interrupts[0].value,
+                    }
         
 class SupervisoryAgent(AgentBase):
     blocked_tools = (
@@ -132,8 +137,6 @@ class SupervisoryAgent(AgentBase):
         "update_story",
         "update_story_slide",
     )
-    
-    tools = ToolsMCP(url=settings.mcp_url, token=settings.mcp_token)
     
     human_in_the_loop = {
         "create_post": {
@@ -159,6 +162,10 @@ class SupervisoryAgent(AgentBase):
         keep=("tokens", 4_000),
         trim_tokens_to_summarize=8_000,
     )
+
+    def __init__(self, model: str | BaseChatModel, checkpointer: BaseCheckpointSaver) -> None:
+        super().__init__(model=model, checkpointer=checkpointer)
+        self.tools = ToolsMCP(url=settings.mcp_url, token=settings.mcp_token)
     
 if __name__ == "__main__":
     from infra import load_llm
