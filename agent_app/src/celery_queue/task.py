@@ -16,6 +16,44 @@ from config import load_settings
 settings = load_settings()
 logger = logging.getLogger(__name__)
 
+TELEGRAM_MAX_MESSAGE_LENGTH = 4096
+TELEGRAM_SAFE_MESSAGE_LENGTH = 3800
+
+
+def _split_text(text: str, max_length: int = TELEGRAM_SAFE_MESSAGE_LENGTH):
+    """Split text into Telegram-safe chunks, preferring natural boundaries."""
+    remaining = text.strip()
+
+    while remaining:
+        if len(remaining) <= max_length:
+            yield remaining
+            return
+
+        split_at = remaining.rfind("\n", 0, max_length + 1)
+        if split_at <= 0:
+            split_at = remaining.rfind(" ", 0, max_length + 1)
+        if split_at <= 0:
+            split_at = max_length
+
+        chunk = remaining[:split_at].rstrip()
+        if not chunk:
+            chunk = remaining[:max_length]
+            split_at = max_length
+
+        yield chunk
+        remaining = remaining[split_at:].lstrip()
+
+
+def _render_for_telegram(text: str):
+    rendered_text, entities = convert(text)
+
+    # Conversion can expand Markdown. Fall back to plain text if the rendered
+    # result still exceeds Telegram's hard limit.
+    if len(rendered_text) > TELEGRAM_MAX_MESSAGE_LENGTH:
+        return text, []
+
+    return rendered_text, [entity.to_dict() for entity in entities]
+
 async def _run_telegram_agent(
         user_input: str | Command,
         thread_id: str,
@@ -70,13 +108,20 @@ async def _run_telegram_agent(
 
                         now = time.monotonic()
                         if now - last_draft_at >= 1.0:
-                            rendered_text, entities = convert(full_text)
+                            draft_text = full_text
+                            if len(draft_text) > TELEGRAM_SAFE_MESSAGE_LENGTH:
+                                draft_text = (
+                                    draft_text[:TELEGRAM_SAFE_MESSAGE_LENGTH - 1].rstrip()
+                                    + "…"
+                                )
+
+                            rendered_text, entities = _render_for_telegram(draft_text)
 
                             await bot.send_message_draft(
                                 chat_id=chat_id,
                                 draft_id=draft_id,
                                 text=rendered_text,
-                                entities=[entity.to_dict() for entity in entities],
+                                entities=entities,
                             )
                             last_draft_at = now
 
@@ -116,12 +161,21 @@ async def _run_telegram_agent(
                                     "thread_id": thread_id,
                                     "interrupt": interruption,
                                     }
+                if full_text.strip():
+                    for message_part in _split_text(full_text):
+                        rendered_text, entities = _render_for_telegram(message_part)
+                        await bot.send_message(
+                            chat_id=chat_id,
+                            text=rendered_text,
+                            entities=entities,
+                        )
+
             except Exception:
                 logger.exception("Falha durante a execução do agente no thread %s", thread_id)
                 try:
                     await bot.send_message(
                         chat_id=chat_id,
-                        text="A conexão com a ferramenta foi encerrada e não foi possível confirmar o resultado. Verifique o estado da operação antes de repetir.",
+                        text="Não foi possível concluir ou entregar a resposta. Verifique o estado da operação antes de repetir.",
                     )
                 except Exception:
                     logger.exception("Não foi possível enviar a mensagem de erro ao thread %s", thread_id)
@@ -131,20 +185,6 @@ async def _run_telegram_agent(
                     "thread_id": thread_id,
                     "reason": "agent_execution_error",
                 }
-                    
-            rendered_text, entities = convert(full_text)
-
-            if rendered_text.strip():
-                await bot.send_message(
-                            chat_id=chat_id,
-                            text=rendered_text,
-                            entities=[entity.to_dict() for entity in entities],
-                        )
-            elif full_text.strip():
-                await bot.send_message(
-                            chat_id=chat_id,
-                            text=full_text,
-                        )
 
             return {
                 "status": "completed",
