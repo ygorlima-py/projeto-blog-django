@@ -6,4 +6,4 @@ exec gunicorn project.asgi:application \
     --workers "${GUNICORN_WORKERS:-3}" \
     --access-logfile - \
     --error-logfile - \
-    --timeout 60
+    --timeout "${GUNICORN_TIMEOUT:-0}"

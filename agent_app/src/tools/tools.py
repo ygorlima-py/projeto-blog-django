@@ -18,6 +18,44 @@ class ToolsMCP:
     def __init__(self, url: str, token: str | None) -> None:
         self.url = url
         self.token = token
+        self._adapter: MCPAdapter | None = None
+
+    async def __aenter__(self) -> "ToolsMCP":
+        """Open one MCP session for the complete agent execution."""
+        if self._adapter is not None:
+            return self
+
+        parsed_url = urlparse(self.url)
+
+        headers = {}
+        if parsed_url.hostname == "djangoapp":
+            headers["X-Forwarded-Proto"] = "https"
+
+        if not self.token:
+            raise ValueError("Add token bareer in env files")
+
+        adapter = MCPAdapter(
+            Client(
+                StreamableHttpTransport(self.url, headers=headers),
+                auth=self.token,
+            )
+        )
+
+        try:
+            await adapter.__aenter__()
+        except Exception:
+            self._adapter = None
+            raise
+
+        self._adapter = adapter
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        adapter = self._adapter
+        self._adapter = None
+
+        if adapter is not None:
+            await adapter.__aexit__(exc_type, exc_value, traceback)
         
     def _get_allowed_tools(self, tools:list[BaseTool], blocked_tools: list):
         
@@ -31,26 +69,14 @@ class ToolsMCP:
         return _allowed_tools
     
     async def aget_tools(self, blocked: list[str] | None = None) -> list[BaseTool]:
-        
-        parsed_url = urlparse(self.url)
+        if self._adapter is None:
+            raise RuntimeError(
+                "A sessão MCP precisa estar aberta durante toda a execução "
+                "do agente (use 'async with ToolsMCP(...)')."
+            )
 
-        headers = {}
-        if parsed_url.hostname == "djangoapp":
-            headers["X-Forwarded-Proto"] = "https"
-            
-        transport = StreamableHttpTransport(
-            self.url,
-            headers=headers,
-        )
-
-        if not self.token:
-            raise ValueError("Add token bareer in env files")
-        
         try:
-            async with MCPAdapter(Client(transport, auth=self.token)) as adapter:
-            
-                tools = await adapter.list_tools()
-           
+            tools = await self._adapter.list_tools()
         except MCPError as error:
             raise RuntimeError(
                 f"Erro MCP {error.code}: {error.message} | dados: {error.data}"
@@ -80,6 +106,10 @@ if __name__ == "__main__":
             
     
     tools_mcp = ToolsMCP(url="https://asiadeperto.com/mcp",token=token)
-    
-    tools = asyncio.run(tools_mcp.aget_tools(tools_allowed))
+
+    async def load_tools():
+        async with tools_mcp:
+            return await tools_mcp.aget_tools(tools_allowed)
+
+    tools = asyncio.run(load_tools())
     print(tools)
