@@ -113,6 +113,7 @@ DJANGO_MCP_AUTHENTICATION_CLASSES = [
 
 DJANGO_MCP_GLOBAL_SERVER_CONFIG = {
     "name": "asia-de-perto",
+    "stateless": True,
     "instructions": """
 Este é o servidor MCP do blog Asia de Perto.
 
