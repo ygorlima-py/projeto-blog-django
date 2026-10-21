@@ -20,7 +20,7 @@ def load_settings() -> Settings:
     mcp_url = os.getenv("URL_MCP")
     uri_broker = os.getenv("URL_BROKER")
     uri_checkpointer = os.getenv("DB_CHECKPOINTER_URI")
-    _checkpointer = os.getenv("CHECKPOINTER", "0")
+    _checkpointer = os.getenv("CHECKPOINTER", "1")
     telegram_token = os.getenv("TELEGRAM_TOKEN")
     
     if (
@@ -54,6 +54,3 @@ def load_settings() -> Settings:
         checkpointer=checkpointer,
         telegram_token=telegram_token,
     )
-        
-    
-        
