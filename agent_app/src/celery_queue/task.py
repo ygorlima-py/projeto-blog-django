@@ -6,6 +6,7 @@ from telegramify_markdown import convert
 import logging
 import secrets
 import time
+from contextlib import nullcontext
 
 from langgraph.types import Command
 
@@ -93,7 +94,13 @@ async def _run_telegram_agent(
                 }
             )
 
-    async with start_postgres_checkpointer() as checkpointer:
+    checkpointer_context = (
+        start_postgres_checkpointer()
+        if settings.checkpointer
+        else nullcontext(None)
+    )
+
+    async with checkpointer_context as checkpointer:
         
         if not settings.telegram_token:
             raise ValueError("TELEGRAM_BOT_TOKEN not configurated")
